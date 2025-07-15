@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Jumia_Api.Domain.Interfaces.Repositories;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

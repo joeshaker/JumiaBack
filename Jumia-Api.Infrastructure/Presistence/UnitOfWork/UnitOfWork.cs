@@ -1,5 +1,7 @@
-﻿using Jumia_Api.Domain.Interfaces.UnitOfWork;
+﻿using Jumia_Api.Domain.Interfaces.Repositories;
+using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Infrastructure.Presistence.Context;
+using Jumia_Api.Infrastructure.Presistence.Repositories;
 
 namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 {
@@ -61,3 +63,4 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
 
     }
+}
