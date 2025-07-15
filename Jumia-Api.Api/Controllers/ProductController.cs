@@ -1,4 +1,5 @@
-﻿using Jumia_Api.Application.Interfaces;
+﻿using Jumia_Api.Application.Dtos.ProductDtos;
+using Jumia_Api.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,6 +26,22 @@ namespace Jumia_Api.Api.Controllers
 
             return Ok(product);
 
+        }
+
+        public async Task<IActionResult> GetAllProducts()
+        {
+            var products = await _productService.GetAllProductsAsync();
+            return Ok(products);
+        }
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateProduct([FromBody] AddProductDto product)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            await _productService.CreateProduct(product);
+            return Ok();
         }
     }
 }
