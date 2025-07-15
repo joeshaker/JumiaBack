@@ -1,12 +1,8 @@
-﻿using Jumia_Api.Domain.Interfaces.Repositories;
+﻿using Jumia_Api.Application.Dtos.ProductDtos;
+using Jumia_Api.Domain.Interfaces.Repositories;
 using Jumia_Api.Domain.Models;
 using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Jumia_Api.Infrastructure.Presistence.Repositories
 {
@@ -15,6 +11,22 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
         public ProductRepo(JumiaDbContext context) : base(context)
         {
         }
+        public async override Task<Product?> GetByIdAsync(int id)
+        {
+            return await _dbSet
+            .AsSplitQuery()
+            .Include(p => p.ProductImages)
+            .Include(p => p.ProductVariants)
+            .Include(p => p.productAttributeValues)
+            .FirstOrDefaultAsync(p => p.ProductId == id);
+        }
+
+        public override async Task Delete(int id)
+          => await _dbSet
+            .Where(e => e.ProductId == id)
+            .ExecuteUpdateAsync(setters => setters
+            .SetProperty(p => p.IsAvailable, false));
+
 
         public async Task<IEnumerable<Product>> GetAvailableProductsAsync()
             => await _dbSet
@@ -40,7 +52,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                     string attributeName = filter.Key;
                     string attributeValue = filter.Value;
 
-                    query = query.Where(p => p.AttributeValues
+                    query = query.Where(p => p.productAttributeValues
                         .Any(av => av.ProductAttribute.Name == attributeName && av.Value == attributeValue));
                 }
 

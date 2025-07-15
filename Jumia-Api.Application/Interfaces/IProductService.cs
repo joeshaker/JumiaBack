@@ -15,6 +15,7 @@ namespace Jumia_Api.Application.Interfaces
         public Task<ProductDto> GetProductByIdAsync(int productId);
         public Task UpdateProduct(UpdateProductDto product);
         public Task CreateProduct(AddProductDto product);
+        public Task DeleteProduct(int productId);
         public Task<IEnumerable<Product>> GetProductsByCategoriesAsync(ProductFilterRequestDto productFilterRequestDto);
 
     }
