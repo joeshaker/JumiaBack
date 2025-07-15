@@ -11,7 +11,7 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
     {
         
         
-        //IChoiceRepo ChoiceRepo { get; }
+        IProductRepo ProductRepo { get; }
         IGenericRepo<T> Repository<T>() where T : class;
 
 

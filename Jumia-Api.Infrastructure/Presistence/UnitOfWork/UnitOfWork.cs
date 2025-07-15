@@ -16,6 +16,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         //private ChoiceRepo? _choiceRepo;
         //private UserExamResultRepo? _userExamResultRepo;
         //private IUserRepo? _userRepo;
+        private IProductRepo? _productRepo;
         private readonly Dictionary<Type, object> _repositories = new();
 
 
@@ -25,6 +26,8 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
             _context = context;
 
         }
+
+        public IProductRepo ProductRepo => _productRepo ??= new ProductRepo(_context);
 
 
         //public IUserRepo UserRepo => _userRepo ??= new UserRepo(_context);
