@@ -16,6 +16,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         //private ChoiceRepo? _choiceRepo;
         //private UserExamResultRepo? _userExamResultRepo;
         //private IUserRepo? _userRepo;
+        private ICategoryRepo? _categoryRepo;
         private IProductRepo? _productRepo;
         private readonly Dictionary<Type, object> _repositories = new();
 
@@ -41,6 +42,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         //public IUserExamResultRepo ExamResultRepo => _userExamResultRepo ?? new UserExamResultRepo(_context);
 
         //public IChoiceRepo ChoiceRepo => _choiceRepo ?? new ChoiceRepo(_context);
+        public ICategoryRepo CategoryRepo => _categoryRepo ?? new CategoryRepository(_context);
 
         public void Dispose()
         {
