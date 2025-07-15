@@ -2,6 +2,10 @@
 using Jumia_Api.Api.DependencyInjection.Application;
 using Jumia_Api.Api.DependencyInjection.Domain;
 using Jumia_Api.Api.DependencyInjection.Infrastructure;
+using Jumia_Api.Application.Interfaces;
+using Jumia_Api.Application.Services;
+using Jumia_Api.Domain.Interfaces.UnitOfWork;
+using Jumia_Api.Infrastructure.Presistence.UnitOfWork;
 using Microsoft.OpenApi.Models;
 
 namespace Jumia_Api.Api
@@ -30,6 +34,8 @@ namespace Jumia_Api.Api
                     Description = "API for Jumia Application",
                 });
             });
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
 
             var app = builder.Build();
 
