@@ -28,7 +28,7 @@ namespace Jumia_Api.Application.Services
             foreach (var categoryId in allCategoryIds)
             {
                 allCategoryIds.Add(categoryId); // include given category
-                var descendants = await _categoryRepo.GetDescendantCategoryIdsAsync(categoryId);
+                var descendants = await _unitOfWork.CategoryRepo.GetDescendantCategoryIdsAsync(categoryId);
                 allCategoryIds.AddRange(descendants);
 
             }
