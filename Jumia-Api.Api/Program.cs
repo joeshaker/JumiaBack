@@ -34,8 +34,8 @@ namespace Jumia_Api.Api
                     Description = "API for Jumia Application",
                 });
             });
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped<ICategoryService, CategoryService>();
+           
+          
 
             var app = builder.Build();
 

@@ -1,6 +1,5 @@
 ﻿using Jumia_Api.Application.Dtos.ProductDtos;
 using Jumia_Api.Application.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jumia_Api.Api.Controllers
@@ -28,6 +27,7 @@ namespace Jumia_Api.Api.Controllers
 
         }
 
+        [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
             var products = await _productService.GetAllProductsAsync();
