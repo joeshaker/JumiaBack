@@ -1,4 +1,6 @@
 
+using Jumia_Api.Api.DependencyInjection.Application;
+using Jumia_Api.Api.DependencyInjection.Domain;
 using Jumia_Api.Api.DependencyInjection.Infrastructure;
 using Microsoft.OpenApi.Models;
 
@@ -14,7 +16,9 @@ namespace Jumia_Api.Api
 
             builder.Services.AddControllers();
             builder.Services.AddInfrastructure(builder.Configuration);
-
+            builder.Services.AddDomain(builder.Configuration);
+            builder.Services.AddApplication(builder.Configuration);
+           
             // Swagger/OpenAPI configuration
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>

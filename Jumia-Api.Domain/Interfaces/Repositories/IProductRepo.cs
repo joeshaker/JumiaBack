@@ -9,5 +9,7 @@ namespace Jumia_Api.Domain.Interfaces.Repositories
                                                                 Dictionary<string, string> attributeFilters = null,
                                                                 decimal? minPrice = null,
                                                                 decimal? maxPrice = null);
+
+        
     }
 }

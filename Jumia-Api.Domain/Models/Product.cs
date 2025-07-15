@@ -59,7 +59,13 @@ namespace Jumia_Api.Domain.Models
         // Navigation properties
         public Seller Seller { get; set; }
         public Category Category { get; set; }
-        public ICollection<ProductAttributeValue> AttributeValues { get; set; }
+      
+        public ICollection<ProductImage> ProductImages { get; set; }
+        public ICollection<ProductVariant> ProductVariants { get; set; } 
+
+        public ICollection<ProductAttributeValue> productAttributeValues { get; set; } 
+
+
     }
 
 
