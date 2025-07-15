@@ -18,9 +18,11 @@ namespace Jumia_Api.Application.MappingProfiles
         .ForMember(dest => dest.AdditionalImageUrls, opt =>
             opt.MapFrom(src => src.ProductImages.OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl)))
         .ForMember(dest => dest.Attributes, opt =>
-            opt.MapFrom(src => src.productAttributeValues));
+            opt.MapFrom(src => src.productAttributeValues))
+        .ForMember(dest=>dest.Variants,opt=>
+        opt.MapFrom(src=>src.ProductVariants));
 
-            CreateMap<ProductVariant, ProductVariantDto>();
+            
             CreateMap<ProductAttributeValue, ProductAttributeValueDto>()
                 .ForMember(dest => dest.AttributeName, opt => opt.MapFrom(src => src.ProductAttribute.Name));
 
@@ -42,6 +44,20 @@ namespace Jumia_Api.Application.MappingProfiles
                 .ForMember(dest => dest.productAttributeValues, opt =>
                 opt.MapFrom(src => src.Attributes));
 
+            // Map ProductAttributeValueDto → ProductAttributeValue
+            CreateMap<ProductAttributeValueDto, ProductAttributeValue>()
+     .ForMember(dest => dest.ProductAttribute, opt => opt.Ignore())
+     .ForMember(dest => dest.AttributeId, opt => opt.MapFrom(src => src.AttributeId));
+
+
+
+            // 🔥 Map ProductVariantDto → ProductVariant (missing one)
+            CreateMap<ProductVariantDto, ProductVariant>();
+            CreateMap<ProductVariant, ProductVariantDto>();
+
+            // You can also map ProductImage if needed
+            CreateMap<string, ProductImage>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src));
         }
 
     }

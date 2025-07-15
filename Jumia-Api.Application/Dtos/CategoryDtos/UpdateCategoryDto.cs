@@ -9,8 +9,8 @@ namespace Jumia_Api.Application.Dtos.CategoryDtos
     public class UpdateCategoryDto
     {
         public string Name { get; set; }
-        public string Description { get; set; }
-        public string ImageSrc { get; set; }
+        public string? Description { get; set; }
+        public string? ImageSrc { get; set; }
         public int? ParentCategoryId { get; set; }
     }
 }

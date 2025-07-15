@@ -28,7 +28,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
         public override async Task Delete(int id)
         {
-            bool hasChildren = await _context.Categories
+            bool hasChildren = await _dbSet
                 .AnyAsync(c => c.ParentCategoryId == id);
 
             if (hasChildren)
@@ -41,14 +41,14 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
         public override async Task<IEnumerable<Category>> GetAllAsync()
         {
-            return await _context.Categories
+            return await _dbSet
                 .AsNoTracking()
                 .ToListAsync();
         }
 
         public override async Task<Category?> GetByIdAsync(int id)
         {
-            return await _context.Categories
+            return await _dbSet
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
@@ -64,7 +64,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
         public async Task<List<int>> GetDescendantCategoryIdsAsync(int parentCategoryId)
         {
-            var childIds = await _context.Categories
+            var childIds = await _dbSet
                 .Where(c => c.ParentCategoryId == parentCategoryId)
                 .Select(c => c.Id)
                 .ToListAsync();
@@ -82,7 +82,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
         public async Task<List<int>> GetChildCategoryIdsAsync(int parentCategoryId)
         {
-            return await _context.Categories
+            return await _dbSet
                 .Where(c => c.ParentCategoryId == parentCategoryId)
                 .Select(c => c.Id)
                 .ToListAsync();
@@ -90,13 +90,13 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
         public async Task<bool> HasChildrenAsync(int categoryId)
         {
-            return await _context.Categories
+            return await _dbSet
                 .AnyAsync(c => c.ParentCategoryId == categoryId);
         }
 
         public async Task<IEnumerable<Category>> GetCategoriesWithSubCategoriesAsync()
         {
-            var allCategories = await _context.Categories
+            var allCategories = await _dbSet
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -105,7 +105,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
         public async Task<Category> GetCategoryWithSubCategoriesAsync(int id)
         {
-            var allCategories = await _context.Categories
+            var allCategories = await _dbSet
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -122,7 +122,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
         public async Task<IEnumerable<Category>> GetMainCategoriesAsync()
         {
-            var allCategories = await _context.Categories
+            var allCategories = await _dbSet
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -130,31 +130,37 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 .Where(c => c.ParentCategoryId == null)
                 .ToList();
 
-            foreach (var category in mainCategories)
-            {
-                category.SubCategories = allCategories
-                    .Where(c => c.ParentCategoryId == category.Id)
-                    .ToList();
-            }
-
+            
             return mainCategories;
         }
 
 
         private IEnumerable<Category> BuildCategoryHierarchy(List<Category> allCategories)
         {
-            var categories = allCategories
+            var rootCategories = allCategories
                 .Where(c => c.ParentCategoryId == null)
                 .ToList();
 
-            foreach (var category in categories)
+            foreach (var category in rootCategories)
             {
-                category.SubCategories = allCategories
-                    .Where(c => c.ParentCategoryId == category.Id)
-                    .ToList();
+                BuildSubCategoryTree(category, allCategories);
             }
 
-            return categories;
+            return rootCategories;
+        }
+
+        private void BuildSubCategoryTree(Category parent, List<Category> allCategories)
+        {
+            var children = allCategories
+                .Where(c => c.ParentCategoryId == parent.Id)
+                .ToList();
+
+            parent.SubCategories = children;
+
+            foreach (var child in children)
+            {
+                BuildSubCategoryTree(child, allCategories); // Recursively build tree for each child
+            }
         }
     }
 }
