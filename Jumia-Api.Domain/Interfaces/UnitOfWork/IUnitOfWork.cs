@@ -13,7 +13,7 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
         
         //IChoiceRepo ChoiceRepo { get; }
         IGenericRepo<T> Repository<T>() where T : class;
-
+         ICategoryRepo CategoryRepo { get; }
 
         Task<int> SaveChangesAsync();
 
