@@ -1,7 +1,10 @@
 
+using Jumia_Api.Api.DependencyInjection.Application;
+using Jumia_Api.Api.DependencyInjection.Domain;
 using Jumia_Api.Api.DependencyInjection.Infrastructure;
 using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Application.Services;
+
 using Jumia_Api.Domain.Models;
 using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +14,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+using Jumia_Api.Domain.Interfaces.UnitOfWork;
+using Jumia_Api.Infrastructure.Presistence.UnitOfWork;
+using Microsoft.OpenApi.Models;
+
 
 namespace Jumia_Api.Api
 {
@@ -27,9 +35,12 @@ namespace Jumia_Api.Api
 
 
             builder.Services.AddControllers();
-            //builder.Services.AddInfrastructure(builder.Configuration);
 
-            builder.Services.AddDbContext<JumiaDbContext>(op => op.UseSqlServer(builder.Configuration.GetConnectionString("JumiaContextConnection")));
+            builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddDomain(builder.Configuration);
+            builder.Services.AddApplication(builder.Configuration);
+
+
 
             builder.Services.AddIdentity<AppUser, IdentityRole>()
                 .AddEntityFrameworkStores<JumiaDbContext>()
@@ -79,16 +90,38 @@ namespace Jumia_Api.Api
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             //builder.Services.AddOpenApi();
 
+       
+           
+            // Swagger/OpenAPI configuration
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Jumia API",
+                    Version = "v1",
+                    Description = "API for Jumia Application",
+                });
+            });
+           
+          
+
+
             var app = builder.Build();
 
             //Enable Swagger middleware
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                //app.MapOpenApi();
-                app.UseSwagger();
-                app.UseSwaggerUI();
+
                 app.UseDeveloperExceptionPage();
+
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Jumia API v1");
+                });
+
             }
 
             app.UseHttpsRedirection();
