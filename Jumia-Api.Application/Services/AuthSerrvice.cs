@@ -26,7 +26,7 @@ namespace Jumia_Api.Application.Services
         public AuthService(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
-        IConfiguration configuration,
+            IConfiguration configuration,
             RoleManager<IdentityRole<Guid>> roleManager)
         {
             _userManager = userManager;
