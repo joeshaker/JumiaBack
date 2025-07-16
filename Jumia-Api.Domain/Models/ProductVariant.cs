@@ -26,7 +26,7 @@ namespace Jumia_Api.Domain.Models
         public decimal Price { get; set; }
 
         [Column(TypeName = "decimal(5, 2)")]
-        public decimal DiscountPercentage { get; set; } = 0;
+        public decimal? DiscountPercentage { get; set; } = 0;
 
         [Required]
         public int StockQuantity { get; set; } = 0;
