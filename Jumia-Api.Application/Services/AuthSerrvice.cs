@@ -18,118 +18,64 @@ namespace Jumia_Api.Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly UserManager<AppUser> _userManager;
-        private readonly SignInManager<AppUser> _signInManager;
-        private readonly IConfiguration configuration;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IUserService _userService;
+        private readonly IJwtService _jwtService;
+        private readonly IOtpService _otpService;
 
-        public AuthService(
-            UserManager<AppUser> userManager,
-            SignInManager<AppUser> signInManager,
-            IConfiguration configuration,
-            RoleManager<IdentityRole> roleManager)
+        public AuthService(IUserService userService, IJwtService jwtService, IOtpService otpService)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            this.configuration = configuration;
-            this._roleManager = roleManager;
+            _userService = userService;
+            _jwtService = jwtService;
+            _otpService = otpService;
         }
 
-
-        public async Task<Result<AuthResult>> Asynclogin(LoginDTO loginDTO)
+        public async Task<(bool Success, string Token, string Message)> LoginAsync(LoginDTO dto)
         {
-            var user = await _userManager.FindByEmailAsync(loginDTO.Email);
-            
-            var roles = await _userManager.GetRolesAsync(user);
-            var authResult = GenerateJwtToken(user, roles);
-            return Result<AuthResult>.Success(authResult);
-        }
-
-        //public Task<AuthResult> Asynclogout(logoutDTO logoutDTO)
-        //{
-        //    return Task.FromResult(new AuthResult
-        //    {
-        //        Successed = true,
-        //        Message = "Logout Successful"
-        //    });
-        //}
-
-        public async Task<Result<AuthResult>> Asyncregister(RegisterDTO registerDTO)
-        {
-            var userExists = await _userManager.FindByEmailAsync(registerDTO.Email);
-            if (userExists != null)
+            var user = await _userService.FindByEmailAsync(dto.Email);
+            if (user == null)
             {
-                return Result<AuthResult>.Failure("this email already exists");
+                return (false, null, "User not found");
             }
-            var user = new AppUser
+            var passwordValid = await _userService.CheckPasswordAsync(user, dto.Password);
+            if (!passwordValid)
             {
-                UserName = registerDTO.Username,
-                Email = registerDTO.Email
-            };
-            var result = await _userManager.CreateAsync(user, registerDTO.Password);
+                return (false, null, "Invalid password");
+            }
+            var token = _jwtService.GenerateToken(user);
+            return (true, token, "Login successful");
+
+        }
+
+        public async Task<(bool Success,string Token, string Message)> RegisterAsync(PasswordSetupDto dto)
+        {
+            if(dto.Password != dto.ConfirmPassword)
+            {
+                return (false, null,"Passwords do not match");
+            }
+
+            var otpValid = _otpService.ValidateOtp(dto.Email, dto.OtpCode);
+            if (!otpValid)
+            {
+                return (false,null, "Invalid or expired OTP code");
+            }
+
+            var result = await _userService.CreateUserAsync(dto.Email, dto.Password);
             if (!result.Succeeded)
             {
                 var errors = string.Join(" | ", result.Errors.Select(e => e.Description));
-                return Result<AuthResult>.Failure($"Registration failed: {errors}");
-            }
-            await _userManager.AddToRoleAsync(user, "Customer");
-            var authResult = new AuthResult
-            {
-                Successed = true,
-                Message = "Registration successful",
-            };
-            return  Result<AuthResult>.Success(authResult);
-
-        }
-
-        public async Task<Result<string>> CreateRoleAsync(string roleName)
-        {
-            if (string.IsNullOrWhiteSpace(roleName))
-                return Result<string>.Failure("Role name cannot be empty.");
-
-            var roleExists = await _roleManager.RoleExistsAsync(roleName);
-            if (roleExists)
-                return Result<string>.Failure($"Role '{roleName}' already exists.");
-
-            var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
-            if (!result.Succeeded)
-            {
-
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return Result<string>.Failure($"Failed to create role: {errors}");
+                return (false,null, $"User creation failed: {errors}");
             }
 
-                return Result<string>.Failure($"Role '{roleName}' created successfully.");
-        }
+            _otpService.RemoveOtp(dto.Email);
 
-        private AuthResult GenerateJwtToken(AppUser user, IList<string> roles)
-        {
-            var authClaims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-            foreach (var role in roles)
-            {
-                authClaims.Add(new Claim(ClaimTypes.Role, role));
-            }
-            var authSigninKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:key"]));
+            //Generate token after registeration to allow user to login immediately
+            var user = await _userService.FindByEmailAsync(dto.Email);
+            var token = _jwtService.GenerateToken(user);
 
-            var token = new JwtSecurityToken(
-                issuer: configuration["Jwt:Issuer"],
-                audience: configuration["Jwt:Audience"],
-                expires: DateTime.Now.AddMinutes(Convert.ToDouble(configuration["Jwt:DurationInMinutes"])),
-                claims: authClaims,
-                signingCredentials: new SigningCredentials(authSigninKey, SecurityAlgorithms.HmacSha256));
+            return (true, token,"User registered successfully");
 
-            return new AuthResult
-            {
-                Successed = true,
-                Message = "Token generated successfully",
-                Token = new JwtSecurityTokenHandler().WriteToken(token)
-            };
+
+
         }
     }
 }

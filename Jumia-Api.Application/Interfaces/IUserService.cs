@@ -13,6 +13,7 @@ namespace Jumia_Api.Application.Interfaces
         Task<bool> UserExistsAsync(string email);
 
         Task<IdentityResult> CreateUserAsync(string email, string password);
-        Task<AppUser> FindByEmailAsync(AppUser user, string password);
+        Task<AppUser> FindByEmailAsync(string email);
+        Task<bool> CheckPasswordAsync(AppUser user, string password);
     }
 }

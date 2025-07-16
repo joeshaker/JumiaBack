@@ -16,6 +16,11 @@ namespace Jumia_Api.Api.DependencyInjection.Application
             // Scan all assemblies
             services.AddAutoMapper(cfg => { },typeof(ProductsMapping).Assembly);
             services.AddScoped<IAuthService, AuthService>();
+            services.AddMemoryCache();
+            services.AddScoped<IOtpService, OtpService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IUserService, UserService>();
+
 
 
 

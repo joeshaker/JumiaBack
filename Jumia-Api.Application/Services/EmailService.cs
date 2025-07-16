@@ -11,7 +11,12 @@ namespace Jumia_Api.Application.Services
     {
         public Task SendEmailAsync(string to, string subject, string body)
         {
-            Console.WriteLine($"Sending email to {to} : {body}");
+            Console.WriteLine("====================================");
+            //Console.WriteLine($"Sending email to {to} : {body}");
+            Console.WriteLine($"To: {to}");
+            Console.WriteLine($"Subject: {subject}");
+            Console.WriteLine($"Body: {body}");
+            Console.WriteLine("====================================");
             return Task.CompletedTask;
         }
     }

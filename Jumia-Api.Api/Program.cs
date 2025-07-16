@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Infrastructure.Presistence.UnitOfWork;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 
 namespace Jumia_Api.Api
@@ -59,25 +60,21 @@ namespace Jumia_Api.Api
 
                     ValidIssuer = jwtConfig["Issuer"],
                     ValidAudience = jwtConfig["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwtConfig["Key"]!)),
-                    ClockSkew = TimeSpan.Zero
-
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig["Key"]!)),
                 };
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        var token = context.Request.Cookies["jwt"];
-                        if (!string.IsNullOrEmpty(token))
-                        {
-                            context.Token = token;
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
-
+                
             });
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+               .AddCookie(options =>
+               {
+                   options.Cookie.HttpOnly = true;
+                   options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                   options.Cookie.SameSite = SameSiteMode.Strict;
+                   options.Cookie.Name = "JumiaAuthCookie";
+                   options.Cookie.MaxAge = TimeSpan.FromMinutes(int.Parse(jwtConfig["DurationInMinutes"]!));
+               });
+            builder.Services.Configure<JwtSettings>(jwtConfig);
+            builder.Services.AddScoped<IJwtService, JwtService>();
 
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
