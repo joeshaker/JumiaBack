@@ -21,13 +21,13 @@ namespace Jumia_Api.Application.Services
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IConfiguration configuration;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public AuthService(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             IConfiguration configuration,
-            RoleManager<IdentityRole<Guid>> roleManager)
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -91,7 +91,7 @@ namespace Jumia_Api.Application.Services
             if (roleExists)
                 return Result<string>.Failure($"Role '{roleName}' already exists.");
 
-            var result = await _roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
+            var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
             if (!result.Succeeded)
             {
 
@@ -106,7 +106,7 @@ namespace Jumia_Api.Application.Services
         {
             var authClaims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
