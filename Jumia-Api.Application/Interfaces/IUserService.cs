@@ -1,4 +1,8 @@
+
+﻿using Jumia_Api.Application.Dtos.AuthDtos;
+
 ﻿using Jumia_Api.Application.Dtos.UserDtos;
+
 using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -20,6 +24,10 @@ namespace Jumia_Api.Application.Interfaces
         Task<IdentityResult> CreateUserAsync(string email, string password);
         Task<AppUser> FindByEmailAsync(string email);
         Task<bool> CheckPasswordAsync(AppUser user, string password);
+
+        Task<AppUser> GetUserByIdAsync(string userId);
+        Task<IdentityResult> UpdateUserAsync(AppUser user);
+
 
     }
 }
