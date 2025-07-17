@@ -85,35 +85,7 @@ namespace Jumia_Api.Api.Controllers
 
         }
 
-        [Authorize]
-        [HttpPost("update-personal-details")]
-        public async Task<IActionResult> UpdatePersonalDetails([FromBody] PersonalDetailsDto dto)
-        {
-            var userId = GetCurrentUserId();
-
-            if(string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized(new { message = "Invalid User ID" });
-            }
-            var result  = await _authService.UpdatePersonalDetailsAsync(userId, dto);
-            
-            if (!result.Succeeded)
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return BadRequest(new { message = $"Failed to update personal details: {errors}" });
-            }
-
-            var user = await _userService.GetUserByIdAsync(userId);
-            var newToken = await _jwtService.GenerateJwtTokenAsync(user);
-
-            SetJwtCookie(newToken);
-
-            return Ok(new 
-            { 
-                message = "Personal details updated successfully"
-            });
-
-        }
+       
 
         private void SetJwtCookie(string token)
         {
@@ -134,93 +106,7 @@ namespace Jumia_Api.Api.Controllers
         }
 
 
-        //[HttpPost("register")]
-        //public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest();
-        //    }
-        //    var result = await _authService.Asyncregister(registerDTO);
-
-        //    if (!result.IsSuccess)
-        //    {
-        //        return BadRequest(result.Error);
-        //    }
-        //    return Ok(result.Value);
-
-        //}
-
-        //[HttpPost("login")]
-        //public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest();
-        //    }
-        //    var result = await _authService.Asynclogin(loginDTO);
-
-        //    if (!result.IsSuccess)
-        //    {
-        //        return Unauthorized(result.Error);
-        //    }
-        //    Response.Cookies.Append("jwt", result.Value.Token, new CookieOptions
-        //    {
-        //        HttpOnly = true,
-        //        Secure = true,
-        //        SameSite = SameSiteMode.Lax,
-        //        Expires = DateTime.UtcNow.AddMinutes(15)
-        //    });
-        //    return Ok(result.Value);
-        //}
-
-        //[HttpPost("logout")]
-        //[Authorize]
-        //public IActionResult Logout()
-        //{
-        //    Response.Cookies.Append("jwt", "", new CookieOptions
-        //    {
-        //        HttpOnly = true,
-        //        Secure = true,
-        //        SameSite = SameSiteMode.Lax,
-        //        Expires = DateTime.UtcNow.AddDays(-1)
-        //    });
-
-        //    return Ok(new { message = "Logged out successfully" });
-        //}
-
-        //[Authorize]
-        //[HttpGet("me")]
-        //public async Task<IActionResult> Me()
-        //{
-        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //    if (userId == null)
-        //    {
-        //        return Unauthorized();
-        //    }
-        //    var email = User.FindFirstValue(ClaimTypes.Email);
-        //    var userName = User.FindFirstValue(ClaimTypes.Name);
-        //    var roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
-        //    return Ok(new
-        //    {
-        //        UserId = Guid.Parse(userId),
-        //        Email = email,
-        //        Role = roles,
-        //        Username = userName
-        //    });
-
-
-        //}
-        //[HttpPost]
-        //public async Task<IActionResult> CreateRole([FromBody] string roleName)
-        //{
-        //    var result  = await _authService.CreateRoleAsync(roleName);
-
-        //    if (result.IsSuccess)
-        //        return Ok(result.Value);
-
-        //    return BadRequest(result.Error);
-        //}
+      
     }
 }
 
