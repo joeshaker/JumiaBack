@@ -44,7 +44,7 @@ namespace Jumia_Api.Application.Services
         
          public async Task<UserProfileDto> GetUserProfileAsync(string userId)
         {
-            var user = await _unitOfWork.UserRepo.GetUserByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
             {
@@ -82,15 +82,16 @@ namespace Jumia_Api.Application.Services
         }
           public async Task UpdateUserProfileAsync(string userId, UpdateUserDto updateDto)
         {
-            var user = await _unitOfWork.UserRepo.GetUserByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found");
             }
 
             _mapper.Map(updateDto, user);
-            await _unitOfWork.UserRepo.UpdateUserAsync(user);
-            await _unitOfWork.SaveChangesAsync();
+            user.Id = userId; 
+            await _userManager.UpdateAsync(user);
+           
         }
         public async Task<AppUser> GetUserByIdAsync(string userId)
         {
