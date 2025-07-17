@@ -1,6 +1,13 @@
-﻿using Jumia_Api.Application.Interfaces;
+
+﻿using AutoMapper;
+using Jumia_Api.Application.Dtos.UserDtos;
+using Jumia_Api.Application.Interfaces;
+using Jumia_Api.Domain.Interfaces.UnitOfWork;
+
+
 using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Identity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,17 +16,35 @@ using System.Threading.Tasks;
 
 namespace Jumia_Api.Application.Services
 {
-    public class UserService : IUserService
-    {
-        private readonly UserManager<AppUser> _userManager;
 
-        public UserService(UserManager<AppUser> userManager)
+    public class UserService: IUserService
+    {
+   
+        private readonly UserManager<AppUser> _userManager;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+
+
+        public UserService(IUnitOfWork unitOfWork , IMapper mapper,UserManager<AppUser> userManager)
         {
              _userManager = userManager;
+              _unitOfWork = unitOfWork;
+           _mapper = mapper;
         }
         public async Task<bool> CheckPasswordAsync(AppUser user, string password)
         {
             return await _userManager.CheckPasswordAsync(user, password);
+        }
+        
+         public async Task<UserProfileDto> GetUserProfileAsync(string userId)
+        {
+            var user = await _unitOfWork.UserRepo.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+            return _mapper.Map<UserProfileDto>(user);
         }
 
         public async Task<IdentityResult> CreateUserAsync(string email, string password)
@@ -47,6 +72,19 @@ namespace Jumia_Api.Application.Services
         public async Task<bool> UserExistsAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email) != null;
+
+        }
+          public async Task UpdateUserProfileAsync(string userId, UpdateUserDto updateDto)
+        {
+            var user = await _unitOfWork.UserRepo.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+
+            _mapper.Map(updateDto, user);
+            await _unitOfWork.UserRepo.UpdateUserAsync(user);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }
