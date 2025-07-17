@@ -3,6 +3,7 @@ using Jumia_Api.Domain.Interfaces.Repositories;
 using Jumia_Api.Domain.Models;
 using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.EntityFrameworkCore;
+using SendGrid.Helpers.Mail;
 
 namespace Jumia_Api.Infrastructure.Presistence.Repositories
 {
@@ -11,15 +12,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
         public ProductRepo(JumiaDbContext context) : base(context)
         {
         }
-        public async override Task<Product?> GetByIdAsync(int id)
-        {
-            return await _dbSet
-            .AsSplitQuery()
-            .Include(p => p.ProductImages)
-            .Include(p => p.ProductVariants)
-            .Include(p => p.productAttributeValues)
-            .FirstOrDefaultAsync(p => p.ProductId == id);
-        }
+     
 
         public override async Task Delete(int id)
           => await _dbSet
@@ -42,7 +35,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                                                                 decimal? maxPrice = null)
         {
             var query = _dbSet
-                .Where(p => categoryIds.Contains(p.CategoryId) && p.IsAvailable)
+                .Where(p => categoryIds.Contains(p.CategoryId))
                 .AsQueryable();
 
             if (attributeFilters != null && attributeFilters.Any())
@@ -65,6 +58,73 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
             return await query.AsNoTracking().ToListAsync();
         }
+
+        public async Task<IEnumerable<Product>> GetProductsBySellerId(int sellerId)
+            => await _dbSet
+                .Where(p => p.SellerId == sellerId)
+                .AsNoTracking()
+                .ToListAsync();
+
+        public async Task<IEnumerable<Product>> GetAvailableProductsBySellerId(int sellerId)
+           => await _dbSet
+                    .Where(p => p.SellerId == sellerId&&p.IsAvailable)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+        public async Task<IEnumerable<Product>> SearchAsync(string searchTerm)
+                => await _dbSet
+                    .Where(p => p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm))
+                    .ToListAsync();
+
+        public async Task<Product?> GetWithVariantsAndAttributesAsync(int productId)
+        {
+
+            return await _dbSet
+            .AsSplitQuery()
+            .Include(p => p.Seller)
+                    .Include(p => p.Category)
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.ProductVariants)
+                    .ThenInclude(v => v.Attributes)
+                    .Include(p => p.productAttributeValues)
+                    .ThenInclude(av => av.ProductAttribute)
+                    .FirstOrDefaultAsync(p => p.ProductId == productId);
+        }
+
+        public async Task<IEnumerable<Product>> GetAllWithVariantsAndAttributesAsync()
+        {
+            return await _dbSet
+                .AsSplitQuery()
+                .Include(p => p.Seller)
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
+                .ThenInclude(v => v.Attributes)
+                .Include(p => p.productAttributeValues)
+                .ThenInclude(av => av.ProductAttribute)
+                .ToListAsync();
+        }
+        
+
+        public async Task Activate(int productId)
+        {
+            var product = await _dbSet.FindAsync(productId);
+            if (product != null)
+            {
+                product.IsAvailable = true;
+                product.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+        
+        public async Task Deactivate(int productId)
+        {
+            var product = await _dbSet.FindAsync(productId);
+            if (product != null)
+            {
+                product.IsAvailable = false;
+                product.UpdatedAt = DateTime.UtcNow;
+            }
+        }
     }
-    }
+}
 
