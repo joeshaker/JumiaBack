@@ -1,5 +1,6 @@
 ﻿using Jumia_Api.Application.Dtos.UserDtos;
 using Jumia_Api.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -17,6 +18,7 @@ namespace Jumia_Api.Api.Controllers
             _userService = userService;
         }
         [HttpGet("profile")]
+        [Authorize]
         public async Task<ActionResult<UserProfileDto>> GetProfile()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

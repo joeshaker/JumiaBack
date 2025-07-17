@@ -11,15 +11,9 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
     {
         private readonly JumiaDbContext _context;
         private readonly UserManager<AppUser> _userManager;
-
-
         private ICategoryRepo? _categoryRepo;
         private IProductRepo? _productRepo;
-
-        private IUserRepository _userRep;
-
         private IProductAttributeRepo? _productAttributeRepo;
-
         private readonly Dictionary<Type, object> _repositories = new();
 
 
@@ -33,19 +27,9 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         public IProductRepo ProductRepo => _productRepo ??= new ProductRepo(_context);
 
 
-        //public IUserRepo UserRepo => _userRepo ??= new UserRepo(_context);
-
-
-
-        //public IExamRepo ExamRepo => _examRepo ??= new ExamRepo(_context);
-
-        //public IQuestionRepo QuestionRepo => _questionRepo ?? new QuestionRepo(_context);
-
-        //public IUserExamResultRepo ExamResultRepo => _userExamResultRepo ?? new UserExamResultRepo(_context);
-
-        //public IChoiceRepo ChoiceRepo => _choiceRepo ?? new ChoiceRepo(_context);
+   
         public ICategoryRepo CategoryRepo => _categoryRepo ?? new CategoryRepository(_context);
-        public IUserRepository UserRepo =>_userRep ??= new UserRepository(_userManager);
+
 
         public IProductAttributeRepo ProductAttributeRepo => _productAttributeRepo ?? new ProductAttributeRepo(_context);
 

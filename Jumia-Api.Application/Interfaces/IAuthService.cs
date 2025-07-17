@@ -12,7 +12,7 @@ namespace Jumia_Api.Application.Interfaces
     
         Task<(bool Success, string Token, string Message)> RegisterAsync(PasswordSetupDto passsetdto);
 
-        Task<IdentityResult> UpdatePersonalDetailsAsync(string userId, PersonalDetailsDto dto);
+  
 
 
 
