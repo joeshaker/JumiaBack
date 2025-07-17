@@ -21,7 +21,7 @@ namespace Jumia_Api.Application.Services
             _setting = options.Value;
         }
 
-        public string GenerateToken(AppUser user)
+        public async Task<string> GenerateJwtTokenAsync (AppUser user)
         {
             var claims = new[]
             {
