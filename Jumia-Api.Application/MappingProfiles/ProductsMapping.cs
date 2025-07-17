@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
 using Jumia_Api.Application.Dtos.ProductDtos;
+using Jumia_Api.Application.Dtos.ProductDtos.Get;
+using Jumia_Api.Application.Dtos.ProductDtos.Post;
 using Jumia_Api.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Jumia_Api.Application.MappingProfiles
 {
@@ -14,50 +11,71 @@ namespace Jumia_Api.Application.MappingProfiles
         
        public ProductsMapping() {
 
-            CreateMap<Product, ProductDto>()
-        .ForMember(dest => dest.AdditionalImageUrls, opt =>
-            opt.MapFrom(src => src.ProductImages.OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl)))
-        .ForMember(dest => dest.Attributes, opt =>
-            opt.MapFrom(src => src.productAttributeValues))
-        .ForMember(dest=>dest.Variants,opt=>
-        opt.MapFrom(src=>src.ProductVariants));
-
-            
-            CreateMap<ProductAttributeValue, ProductAttributeValueDto>()
-                .ForMember(dest => dest.AttributeName, opt => opt.MapFrom(src => src.ProductAttribute.Name));
-
+          
             CreateMap<AddProductDto, Product>()
-            .ForMember(dest => dest.ProductImages, opt =>
-                opt.MapFrom(src => src.AdditionalImageUrls
-                    .Select(url => new ProductImage { ImageUrl = url })))
-            .ForMember(dest => dest.ProductVariants, opt =>
-                opt.MapFrom(src => src.Variants))
-            .ForMember(dest => dest.productAttributeValues, opt =>
-                opt.MapFrom(src => src.Attributes));
+                .ForMember(dest => dest.ProductImages,
+                    opt => opt.MapFrom(src =>
+                        src.AdditionalImageUrls.Select(url => new ProductImage { ImageUrl = url })))
+                .ForMember(dest => dest.productAttributeValues,
+                    opt => opt.MapFrom(src =>
+                        src.Attributes.SelectMany(a => a.Values.Select(v =>
+                            new ProductAttributeValue
+                            {
+                                AttributeId = a.AttributeId, 
+                                Value = v
+                            }))))
+                .ForMember(dest => dest.ProductVariants,
+                    opt => opt.MapFrom(src => src.Variants))
+                .ForMember(dest => dest.ProductId, opt => opt.Ignore()) 
+                .ForMember(dest => dest.Seller, opt => opt.Ignore())   
+                .ForMember(dest => dest.Category, opt => opt.Ignore());
 
-            CreateMap<UpdateProductDto, Product>()
-                .ForMember(dest => dest.ProductImages, opt =>
-                    opt.MapFrom(src => src.AdditionalImageUrls
-                    .Select(url => new ProductImage { ImageUrl = url })))
-                .ForMember(dest => dest.ProductVariants, opt =>
-                    opt.MapFrom(src => src.Variants))
-                .ForMember(dest => dest.productAttributeValues, opt =>
-                opt.MapFrom(src => src.Attributes));
+            CreateMap<Product, ProductDetailsDto>()
+                .ForMember(dest=>dest.DiscountPercentage, opt =>
+                    opt.MapFrom(src => $"{src.ProductVariants.Min(v => v.DiscountPercentage)}% - {src.ProductVariants.Max(v => v.DiscountPercentage)}%")) 
+                .ForMember(dest => dest.AdditionalImageUrls, opt =>
+                    opt.MapFrom(src => src.ProductImages.Select(pi => pi.ImageUrl)))
+                .ForMember(dest => dest.Attributes, opt =>
+                    opt.MapFrom(src =>
+                        src.productAttributeValues
+                           .GroupBy(pav => pav.ProductAttribute.Name)
+                           .Select(g => new ProductAttributeDto
+                           {    AttributeId = g.First().ProductAttribute.AttributeId, 
+                               AttributeName = g.Key,
+                               Values = g.Select(v => v.Value).Distinct().ToList()
+                           })))
+                .ForMember(dest => dest.Variants, opt =>
+                    opt.MapFrom(src => src.ProductVariants));
 
-            // Map ProductAttributeValueDto → ProductAttributeValue
-            CreateMap<ProductAttributeValueDto, ProductAttributeValue>()
-     .ForMember(dest => dest.ProductAttribute, opt => opt.Ignore())
-     .ForMember(dest => dest.AttributeId, opt => opt.MapFrom(src => src.AttributeId));
+
+            //get
+            CreateMap<Product, ProductsUIDto>()
+                .ForMember(dest => dest.DiscountPercentage, opt =>
+                    opt.MapFrom(src => $"{src.ProductVariants.Min(v => v.DiscountPercentage)}% - {src.ProductVariants.Max(v => v.DiscountPercentage)}%"));
 
 
+            //post
+            CreateMap<ProductVariantDto, ProductVariant>()
+                .ForMember(dest => dest.Attributes, opt => opt.MapFrom(src => src.Attributes))
+                .ForMember(dest => dest.VariantId, opt => opt.Ignore())   
+                .ForMember(dest => dest.ProductId, opt => opt.Ignore())  
+                .ForMember(dest => dest.Product, opt => opt.Ignore()).ReverseMap();   
+            //get
 
-            // 🔥 Map ProductVariantDto → ProductVariant (missing one)
-            CreateMap<ProductVariantDto, ProductVariant>();
-            CreateMap<ProductVariant, ProductVariantDto>();
+            //post
+            CreateMap<VariantAttributeDto, VariantAttribute>()
+                .ForMember(dest => dest.VariantAttributeId, opt => opt.Ignore()) 
+                .ForMember(dest => dest.VariantId, opt => opt.Ignore())         
+                .ForMember(dest => dest.ProductVariant, opt => opt.Ignore());    
 
-            // You can also map ProductImage if needed
-            CreateMap<string, ProductImage>()
-                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src));
+            //get
+            CreateMap<VariantAttribute, VariantAttributeDto>()
+          .ForMember(dest => dest.AttributeId, opt =>
+              opt.MapFrom(src => src.VariantAttributeId))
+          .ForMember(dest => dest.AttributeName, opt =>
+              opt.MapFrom(src => src.AttributeName))
+          .ForMember(dest => dest.AttributeValue, opt =>
+              opt.MapFrom(src => src.AttributeValue));
         }
 
     }

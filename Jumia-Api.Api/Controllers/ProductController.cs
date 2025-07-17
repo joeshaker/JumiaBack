@@ -1,4 +1,5 @@
 ﻿using Jumia_Api.Application.Dtos.ProductDtos;
+using Jumia_Api.Application.Dtos.ProductDtos.Post;
 using Jumia_Api.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,10 +14,16 @@ namespace Jumia_Api.Api.Controllers
         {
             _productService = productService;
         }
-        [HttpGet("get-by-id/{productId:int}")]
-        public async Task<IActionResult> GetProductByID(int productId)
+
+
+
+
+
+
+        [HttpGet("get-details-by-id")]
+        public async Task<IActionResult> GetProductByID([FromQuery] int productId, [FromQuery] string role)
         {
-           var product = await _productService.GetProductByIdAsync(productId);
+            var product = await _productService.GetProductDetailsAsync(productId,role);
 
             if (product == null)
             {
@@ -27,21 +34,131 @@ namespace Jumia_Api.Api.Controllers
 
         }
 
-        [HttpGet]
+        [HttpGet("get-all-with-details")]
         public async Task<IActionResult> GetAllProducts()
         {
-            var products = await _productService.GetAllProductsAsync();
+           var products = await _productService.GetAllProductsWithDetailsAsync();
+            if (products == null || !products.Any())
+            {
+                return NotFound(new { message = "No products found" });
+            }
             return Ok(products);
         }
+
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAllAvailableProducts()
+        {
+            var products = await _productService.GetAllProductsAsync();
+            if (products == null || !products.Any())
+            {
+                return NotFound(new { message = "No available products found" });
+            }
+
+            return Ok(products);
+        }
+
+        [HttpGet("all-by-sellerId")]
+        public async Task<IActionResult> GetAllBySellerIdAvailableProducts([FromQuery] int sellerId,[FromQuery]string role)
+        {
+            var products = await _productService.GetProductsBySellerIdAsync(sellerId,role);
+            if (products == null || !products.Any())
+            {
+                return NotFound(new { message = "No available products found" });
+            }
+
+            return Ok(products);
+        }
+
+
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateProduct([FromBody] AddProductDto product)
+        { //Done only return type checks
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+           var reuslt = await _productService.CreateProductAsync(product);
+            return Ok(reuslt);
+        }
+
+        [HttpPost("Products-filterd")]
+        public async Task<IActionResult> GetFilteredProducts([FromQuery] string role,[FromBody] ProductFilterRequestDto productFilterRequestDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            await _productService.CreateProduct(product);
-            return Ok();
+            var products = await _productService.GetProductsByCategoriesAsync(role,productFilterRequestDto);
+            if (products == null || !products.Any())
+            {
+                return NotFound(new { message = "No products found matching the criteria" });
+            }
+            return Ok(products);
         }
+
+        [HttpPut("Deactivate/{id:int}")]
+        public async Task<IActionResult> ActivateProduct(int id)
+        {
+            await _productService.DeactivateProductAsync(id);
+            return Ok(new { message = "Product deleted successfully" });
+        }
+
+        [HttpPut("Activate/{id:int}")]
+        public async Task<IActionResult> DeactivateProduct(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _productService.ActivateProductAsync(id);
+            return Ok(new { message = "Product updated successfully" });
+        }
+
+        [HttpGet("search")]
+        // for user only
+        public async Task<IActionResult> SearchProducts([FromQuery] string keyword)
+        {
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+             var products = await _productService.SearchProductsAsync(keyword);
+            return Ok(products);
+        }
+
+        
+       
+        [HttpPost("{id}/variant")]
+        public async Task<IActionResult> FindVariant(int id, [FromBody] FindVariantRequestDto request)
+        {
+            var variant = await _productService.FindVariantAsync(id, request);
+            return Ok(variant);
+        }
+        [HttpPost("{id}/attribute-options")]
+        public async Task<IActionResult> GetAttributeOptions(int id, [FromBody] AttributeOptionsRequestDto request)
+        {
+            var options = await _productService.GetAttributeOptionsAsync(id, request);
+            return Ok(options);
+        }
+
+
+
+
+/*
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductDto product)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _productService.UpdateProductAsync(product);
+            return Ok();
+        }*/
+
     }
 }
