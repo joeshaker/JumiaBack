@@ -14,6 +14,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         private ICategoryRepo? _categoryRepo;
         private IProductRepo? _productRepo;
         private IProductAttributeRepo? _productAttributeRepo;
+        private IOrderRepository? _orderRepository;
         private readonly Dictionary<Type, object> _repositories = new();
 
 
@@ -32,6 +33,8 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
 
         public IProductAttributeRepo ProductAttributeRepo => _productAttributeRepo ?? new ProductAttributeRepo(_context);
+
+        public IOrderRepository OrderRepo => _orderRepository ?? new OrderRepository(_context);
 
         public void Dispose()
         {
