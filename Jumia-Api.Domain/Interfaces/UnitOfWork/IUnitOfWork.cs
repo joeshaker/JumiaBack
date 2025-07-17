@@ -9,11 +9,12 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
 {
     public interface IUnitOfWork : IDisposable
     {
-        
-        
+
+        IProductAttributeRepo ProductAttributeRepo { get; }
         IProductRepo ProductRepo { get; }
         IGenericRepo<T> Repository<T>() where T : class;
          ICategoryRepo CategoryRepo { get; }
+        IUserRepository UserRepo { get; }
 
         Task<int> SaveChangesAsync();
 

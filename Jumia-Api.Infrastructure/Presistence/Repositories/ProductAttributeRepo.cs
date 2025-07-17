@@ -16,5 +16,12 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
             .Where(attr => categoryIds.Contains(attr.Category.Id))
             .AsNoTracking()
             .ToListAsync();
+
+        public async Task<List<ProductAttribute>> GetAttributesByCategoryIdAsync(int categoryId)
+        {
+            return await _context.ProductAttributes
+                .Where(a => a.CategoryId == categoryId)
+                .ToListAsync();
+        }
     }
 }

@@ -8,11 +8,8 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 {
     public class CategoryRepository : GenericRepo<Category>, ICategoryRepo
     {
-        private readonly JumiaDbContext _context;
-
         public CategoryRepository(JumiaDbContext context) : base(context)
         {
-            _context = context;
         }
 
 

@@ -1,4 +1,5 @@
 ﻿using Jumia_Api.Application.Dtos.CategoryDtos;
+using Jumia_Api.Application.Dtos.ProductDtos;
 using Jumia_Api.Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -19,5 +20,6 @@ namespace Jumia_Api.Application.Interfaces
         Task<bool> CategoryNameExistsAsync(string name);
         Task<IEnumerable<int>> GetCategoryAndDescendantIdsAsync(int categoryId);
         Task MoveCategoryToNewParentAsync(int categoryId, MoveCategoryDto moveDto);
+        Task<IEnumerable<ProductAttribute>> GetCategoriesAttributes(int parentId);
     }
 }
