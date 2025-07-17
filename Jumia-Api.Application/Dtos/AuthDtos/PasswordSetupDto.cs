@@ -7,13 +7,18 @@ using System.Threading.Tasks;
 
 namespace Jumia_Api.Application.Dtos.AuthDtos
 {
-    public class LoginDTO
+    public class PasswordSetupDto
     {
-        [Required, EmailAddress]
+        [Required,EmailAddress]
         public string Email { get; set; }
-
+        
+        [Required]
+        public string OtpCode { get; set; }
+        
         [Required]
         public string Password { get; set; }
 
+        [Required]
+        public string ConfirmPassword { get; set; }
     }
 }
