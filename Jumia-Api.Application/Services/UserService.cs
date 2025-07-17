@@ -42,6 +42,7 @@ namespace Jumia_Api.Application.Services
 
             _mapper.Map(updateDto, user);
             await _unitOfWork.UserRepo.UpdateUserAsync(user);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }
