@@ -1,7 +1,9 @@
 ﻿using Jumia_Api.Application.Dtos.AuthDtos;
 using Jumia_Api.Application.Interfaces;
+using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -16,13 +18,15 @@ namespace Jumia_Api.Api.Controllers
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
         private readonly IJwtService _jwtService;
-        public AuthController(IOtpService otpService, IEmailService emailService, IUserService userService, IAuthService authService, IJwtService jwtService)
+        private readonly UserManager<AppUser> _userManager;
+        public AuthController(IOtpService otpService, IEmailService emailService, IUserService userService, IAuthService authService, IJwtService jwtService, UserManager<AppUser> userManager)
         {
             _otpService = otpService;
             _emailService = emailService;
             _userService = userService;
             _authService = authService;
             _jwtService = jwtService;
+            _userManager = userManager;
         }
 
         [HttpPost("email-check")]
@@ -60,7 +64,8 @@ namespace Jumia_Api.Api.Controllers
                 return BadRequest(new { message });
             }
             SetJwtCookie(token);
-            return Ok(new { message });
+            // in the front-end logic, after the user registers, direct them to the update personal details page if isFirstTimeLogin is true.
+            return Ok(new { message , isFirstTimeLogin = true});
            
 
         }
@@ -80,6 +85,36 @@ namespace Jumia_Api.Api.Controllers
 
         }
 
+        [Authorize]
+        [HttpPost("update-personal-details")]
+        public async Task<IActionResult> UpdatePersonalDetails([FromBody] PersonalDetailsDto dto)
+        {
+            var userId = GetCurrentUserId();
+
+            if(string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "Invalid User ID" });
+            }
+            var result  = await _authService.UpdatePersonalDetailsAsync(userId, dto);
+            
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return BadRequest(new { message = $"Failed to update personal details: {errors}" });
+            }
+
+            var user = await _userService.GetUserByIdAsync(userId);
+            var newToken = await _jwtService.GenerateJwtTokenAsync(user);
+
+            SetJwtCookie(newToken);
+
+            return Ok(new 
+            { 
+                message = "Personal details updated successfully"
+            });
+
+        }
+
         private void SetJwtCookie(string token)
         {
             var cookieOptions = new CookieOptions
@@ -90,6 +125,12 @@ namespace Jumia_Api.Api.Controllers
                 Expires = DateTime.UtcNow.AddMinutes(60)
             };
             Response.Cookies.Append("JumiaAuthCookie", token, cookieOptions);
+        }
+
+        //extract the user ID from the token
+        private string GetCurrentUserId()
+        {
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
 
 

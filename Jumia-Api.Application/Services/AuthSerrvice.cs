@@ -41,7 +41,7 @@ namespace Jumia_Api.Application.Services
             {
                 return (false, null, "Invalid password");
             }
-            var token = _jwtService.GenerateToken(user);
+            var token = await _jwtService.GenerateJwtTokenAsync(user);
             return (true, token, "Login successful");
 
         }
@@ -70,12 +70,29 @@ namespace Jumia_Api.Application.Services
 
             //Generate token after registeration to allow user to login immediately
             var user = await _userService.FindByEmailAsync(dto.Email);
-            var token = _jwtService.GenerateToken(user);
+            var token = await _jwtService.GenerateJwtTokenAsync(user);
 
             return (true, token,"User registered successfully");
 
+        }
+
+        public async Task<IdentityResult> UpdatePersonalDetailsAsync(string userId, PersonalDetailsDto dto)
+        {
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+            }
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+            user.PhoneNumber = dto.PhoneNumber;
+            user.DateOfBirth = dto.BirthDate;
+            // You can also update other properties like Address
+
+            return await _userService.UpdateUserAsync(user);
 
 
         }
+
     }
 }

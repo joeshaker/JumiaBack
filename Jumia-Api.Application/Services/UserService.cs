@@ -1,4 +1,5 @@
-﻿using Jumia_Api.Application.Interfaces;
+﻿using Jumia_Api.Application.Dtos.AuthDtos;
+using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -15,7 +16,7 @@ namespace Jumia_Api.Application.Services
 
         public UserService(UserManager<AppUser> userManager)
         {
-             _userManager = userManager;
+            _userManager = userManager;
         }
         public async Task<bool> CheckPasswordAsync(AppUser user, string password)
         {
@@ -35,7 +36,7 @@ namespace Jumia_Api.Application.Services
                 Address = "123 Main Street",
                 Gender = "Female" // or "Male", "Other", etc.
             };
-            return await _userManager.CreateAsync(user,password);
+            return await _userManager.CreateAsync(user, password);
 
         }
 
@@ -48,5 +49,15 @@ namespace Jumia_Api.Application.Services
         {
             return await _userManager.FindByEmailAsync(email) != null;
         }
+        public async Task<AppUser> GetUserByIdAsync(string userId)
+        {
+            return await _userManager.FindByIdAsync(userId);
+        }
+
+        public async Task<IdentityResult> UpdateUserAsync(AppUser user)
+        {
+            return await _userManager.UpdateAsync(user);
+        }
+
     }
-}
+    }
