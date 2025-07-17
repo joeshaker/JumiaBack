@@ -9,6 +9,7 @@ namespace Jumia_Api.Domain.Interfaces.Repositories
 {
     public interface IProductAttributeRepo : IGenericRepo<ProductAttribute>
     {
+        public Task<List<ProductAttribute>> GetAttributesByCategoryIdAsync(int categoryId);
         public Task<List<ProductAttribute>> GetAttributesForCategoriesAsync(List<int> categoryIds);
     }
 }

@@ -1,4 +1,6 @@
-﻿using Jumia_Api.Application.Dtos.CategoryDtos;
+﻿using AutoMapper;
+using Jumia_Api.Application.Dtos.CategoryDtos;
+using Jumia_Api.Application.Dtos.ProductDtos;
 using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Domain.Models;
@@ -11,11 +13,12 @@ namespace Jumia_Api.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CategoryService> _logger;
-
+ 
         public CategoryService(IUnitOfWork unitOfWork, ILogger<CategoryService> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+
         }
 
         public async Task<CategoryResponseDto> CreateCategoryAsync(CreateCategoryDto createDto)
@@ -306,5 +309,11 @@ namespace Jumia_Api.Application.Services
         }
 
 
+        public async Task<IEnumerable<ProductAttribute>> GetCategoriesAttributes(int parentId)
+        {
+            var descendants = await _unitOfWork.CategoryRepo.GetDescendantCategoryIdsAsync(parentId);
+            var attributes = await _unitOfWork.ProductAttributeRepo.GetAttributesForCategoriesAsync(descendants);
+            return attributes;
+        }
     }
 }

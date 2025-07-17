@@ -82,5 +82,14 @@ namespace Jumia_Api.Api.Controllers
             var categories = await _categoryService.GetMainCategoriesAsync();
             return categories.Any() ? Ok(categories) : NoContent();
         }
+
+        [HttpGet("{parentId:int}/attributes")]
+        public async Task<IActionResult> GetAttributes(int parentId)
+        {
+            if (parentId <= 0)
+                return BadRequest("Parent category ID must be positive");
+            var attributes = await _categoryService.GetCategoriesAttributes(parentId);
+            return attributes.Any() ? Ok(attributes) : NotFound($"No attributes found for category with ID {parentId}");
+        }
     }
 }
