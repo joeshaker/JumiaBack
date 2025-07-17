@@ -75,6 +75,7 @@ namespace Jumia_Api.Api.Controllers
         {
             var (success, token, message) = await _authService.LoginAsync(dto);
 
+            Response.Cookies.Append("user");
             if (!success)
             {
                 return Unauthorized(new { message });

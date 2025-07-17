@@ -12,6 +12,7 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
 
         IProductAttributeRepo ProductAttributeRepo { get; }
         IProductRepo ProductRepo { get; }
+        IAddressRepo AddressRepo { get; }
         IGenericRepo<T> Repository<T>() where T : class;
          ICategoryRepo CategoryRepo { get; }
        
