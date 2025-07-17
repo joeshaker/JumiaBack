@@ -1,18 +1,6 @@
-﻿using Jumia_Api.Api.Contracts.Results;
-using Jumia_Api.Application.Common.Results;
-using Jumia_Api.Application.Dtos.AuthDtos;
+﻿using Jumia_Api.Application.Dtos.AuthDtos;
 using Jumia_Api.Application.Interfaces;
-using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Jumia_Api.Application.Services
 {
@@ -76,23 +64,7 @@ namespace Jumia_Api.Application.Services
 
         }
 
-        public async Task<IdentityResult> UpdatePersonalDetailsAsync(string userId, PersonalDetailsDto dto)
-        {
-            var user = await _userService.GetUserByIdAsync(userId);
-            if (user == null)
-            {
-                return IdentityResult.Failed(new IdentityError { Description = "User not found" });
-            }
-            user.FirstName = dto.FirstName;
-            user.LastName = dto.LastName;
-            user.PhoneNumber = dto.PhoneNumber;
-            user.DateOfBirth = dto.BirthDate;
-            // You can also update other properties like Address
-
-            return await _userService.UpdateUserAsync(user);
-
-
-        }
+     
 
     }
 }
