@@ -1,4 +1,5 @@
-﻿using Jumia_Api.Domain.Models;
+﻿using Jumia_Api.Application.Dtos.UserDtos;
+using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,7 @@ namespace Jumia_Api.Application.Interfaces
 {
     public interface IUserService
     {
-        Task<bool> UserExistsAsync(string email);
-
-        Task<IdentityResult> CreateUserAsync(string email, string password);
-        Task<AppUser> FindByEmailAsync(AppUser user, string password);
+        Task<UserProfileDto> GetUserProfileAsync(string userId);
+        Task UpdateUserProfileAsync(string userId, UpdateUserDto updateDto);
     }
 }

@@ -14,6 +14,7 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
         IProductRepo ProductRepo { get; }
         IGenericRepo<T> Repository<T>() where T : class;
          ICategoryRepo CategoryRepo { get; }
+        IUserRepository UserRepo { get; }
 
         Task<int> SaveChangesAsync();
 

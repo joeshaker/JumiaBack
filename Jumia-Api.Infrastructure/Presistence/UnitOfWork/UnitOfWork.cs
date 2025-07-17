@@ -1,14 +1,16 @@
 ﻿using Jumia_Api.Domain.Interfaces.Repositories;
 using Jumia_Api.Domain.Interfaces.UnitOfWork;
+using Jumia_Api.Domain.Models;
 using Jumia_Api.Infrastructure.Presistence.Context;
 using Jumia_Api.Infrastructure.Presistence.Repositories;
+using Microsoft.AspNetCore.Identity;
 
 namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly JumiaDbContext _context;
-
+        private readonly UserManager<AppUser> _userManager;
 
 
         //private ExamRepo? _examRepo;
@@ -18,6 +20,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         //private IUserRepo? _userRepo;
         private ICategoryRepo? _categoryRepo;
         private IProductRepo? _productRepo;
+        private IUserRepository _userRep;
         private readonly Dictionary<Type, object> _repositories = new();
 
 
@@ -43,6 +46,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
         //public IChoiceRepo ChoiceRepo => _choiceRepo ?? new ChoiceRepo(_context);
         public ICategoryRepo CategoryRepo => _categoryRepo ?? new CategoryRepository(_context);
+        public IUserRepository UserRepo =>_userRep ??= new UserRepository(_userManager);
 
         public void Dispose()
         {
