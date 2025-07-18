@@ -15,6 +15,9 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         private IProductRepo? _productRepo;
         private IProductAttributeRepo? _productAttributeRepo;
         private IAddressRepo? _addressRepo;
+        private ICartRepo? _cartRepo;
+        private ICartItemRepo? _cartItemRepo;
+        private ICustomerRepo? _customerRepo;
         private readonly Dictionary<Type, object> _repositories = new();
 
 
@@ -34,7 +37,13 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
         public IProductAttributeRepo ProductAttributeRepo => _productAttributeRepo ?? new ProductAttributeRepo(_context);
 
-        public IAddressRepo AddressRepo => _addressRepo?? new AddressRepo(_context);    
+        public IAddressRepo AddressRepo => _addressRepo?? new AddressRepo(_context);
+
+        public ICartRepo CartRepo => _cartRepo ?? new CartRepo(_context);
+
+        public ICartItemRepo CartItemRepo => _cartItemRepo ?? new CartItemRepo(_context);
+
+        public ICustomerRepo CustomerRepo => _customerRepo ?? new CustomerRepo(_context);
 
         public void Dispose()
         {

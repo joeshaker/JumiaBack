@@ -9,6 +9,6 @@ namespace Jumia_Api.Application.Interfaces
 {
     public interface IJwtService
     {
-        Task<string> GenerateJwtTokenAsync (AppUser user);
+        Task<string> GenerateJwtTokenAsync (AppUser user,string role,int userTypeId);
     }
 }
