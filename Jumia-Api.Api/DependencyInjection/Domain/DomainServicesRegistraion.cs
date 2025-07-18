@@ -16,6 +16,8 @@ namespace Jumia_Api.Api.DependencyInjection.Domain
             services.AddScoped<ICategoryRepo, CategoryRepository>();
             services.AddScoped(typeof(IGenericRepo<>), typeof(GenericRepo<>));
             services.AddScoped<IProductAttributeRepo, ProductAttributeRepo>();
+            services.AddScoped<ICartItemRepo, CartItemRepo>();
+            services.AddScoped<ICartRepo, CartRepo>();
             return services;
 
         }

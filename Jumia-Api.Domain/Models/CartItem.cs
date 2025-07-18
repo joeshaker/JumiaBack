@@ -21,15 +21,20 @@ namespace Jumia_Api.Domain.Models
         [ForeignKey("Product")]
         public int ProductId { get; set; }
 
+        [ForeignKey("ProductVariant")]
+        public int? VariationId { get; set; }  
+
         [Required]
         public int Quantity { get; set; } = 1;
 
         [Required]
         [Column(TypeName = "decimal(10, 2)")]
-        public decimal PriceAtAddition { get; set; }
+        public decimal PriceAtAddition { get; set; }  // to lock price
+
 
         // Navigation properties
         public Cart Cart { get; set; }
         public Product Product { get; set; }
+        public ProductVariant ProductVariant { get; set; } // Optional, if variations are used
     }
 }

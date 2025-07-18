@@ -27,6 +27,8 @@ namespace Jumia_Api.Application.Interfaces
 
         Task<AppUser> GetUserByIdAsync(string userId);
         Task<IdentityResult> UpdateUserAsync(AppUser user);
+        public Task<string?> GetUserRoleAsync(AppUser user);
+        public Task AddUserToRoleAsync(AppUser user, string role);
 
 
     }

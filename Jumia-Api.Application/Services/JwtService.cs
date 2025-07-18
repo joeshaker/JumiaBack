@@ -21,16 +21,19 @@ namespace Jumia_Api.Application.Services
             _setting = options.Value;
         }
 
-        public async Task<string> GenerateJwtTokenAsync (AppUser user)
+        public async Task<string> GenerateJwtTokenAsync (AppUser user,string role, int userTypeId)
         {
-            var claims = new[]
+            var claims = new List<Claim>
             {
-            
+                new Claim(ClaimTypes.Role,role),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName),
             };
-
+            if (userTypeId != 0)
+            {
+                claims.Add(new Claim("userTypeId",userTypeId.ToString()));
+            }
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_setting.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
