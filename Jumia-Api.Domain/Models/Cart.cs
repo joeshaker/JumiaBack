@@ -21,7 +21,11 @@ namespace Jumia_Api.Domain.Models
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+
+
         // Navigation property
+
+        public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
         public Customer Customer { get; set; }
     }
 }
