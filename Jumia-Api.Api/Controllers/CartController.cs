@@ -26,10 +26,10 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpPost("items")]
-        public async Task<IActionResult> AddItem([FromBody] AddToCartDto dto)
+        public async Task<IActionResult> AddItems([FromBody] List<AddToCartDto> dtos)
         {
             int customerId = GetCustomerId();
-            await _cartService.AddItemAsync(customerId, dto);
+            await _cartService.AddItemsAsync(customerId, dtos);
             return Ok();
         }
 
