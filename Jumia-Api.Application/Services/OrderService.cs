@@ -90,8 +90,8 @@ namespace Jumia_Api.Application.Services
             if (order.Status == "cancelled")
                 return false;
 
-            if (order.Status == "shipped" || order.Status == "delivered")
-                return false;
+            //if (order.Status == "shipped" || order.Status == "delivered")
+            //    return false;
             var success = await _unitOfWork.OrderRepo.CancelOrderAsync(id, cancellationReason);
             if (!success)
                 return false;

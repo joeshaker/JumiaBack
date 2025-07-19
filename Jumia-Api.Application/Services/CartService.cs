@@ -37,49 +37,57 @@ namespace Jumia_Api.Application.Services
             return _mapper.Map<CartDto>(cart); // Use AutoMapper or manual mapping
         }
 
-        public async Task AddItemAsync(int customerId, AddToCartDto dto)
+        public async Task AddItemsAsync(int customerId, List<AddToCartDto> dtos)
         {
             var cart = await _unitOfWork.CartRepo.GetCustomerCartAsync(customerId)
-            ?? new Cart { CustomerId = customerId };
+                       ?? new Cart { CustomerId = customerId };
 
-            var product = await _unitOfWork.ProductRepo.GetWithVariantsAndAttributesAsync(dto.ProductId);
-            if (product == null || !product.IsAvailable)
-                throw new Exception("Product not available.");
+            var productIds = dtos.Select(x => x.ProductId).Distinct().ToList();
+            var products = await _unitOfWork.ProductRepo.GetbyIdsWithVariantsAndAttributesAsync(productIds);
 
-            if (dto.VariantId.HasValue)
+            foreach (var dto in dtos)
             {
-                var variant = product.ProductVariants.FirstOrDefault(v => v.VariantId == dto.VariantId);
-                if (variant == null || !variant.IsAvailable)
-                    throw new Exception("Variant not available.");
-                if (variant.StockQuantity < dto.Quantity)
-                    throw new Exception("Insufficient stock for variant.");
-            }
-            else
-            {
-                if (product.StockQuantity < dto.Quantity)
-                    throw new Exception("Insufficient stock for product.");
-            }
+                var product = products.FirstOrDefault(p => p.ProductId == dto.ProductId);
+                if (product == null || !product.IsAvailable)
+                    throw new Exception($"Product {dto.ProductId} not available.");
 
-            var existingItem = await _unitOfWork.CartItemRepo
-                .GetCartItemAsync(cart.CartId, dto.ProductId, dto.VariantId);
-
-            if (existingItem != null)
-            {
-                existingItem.Quantity += dto.Quantity;
-            }
-            else
-            {
-                var newItem = new CartItem
+                if (dto.VariantId.HasValue)
                 {
-                    ProductId = dto.ProductId,
-                    VariationId = dto.VariantId,
-                    Quantity = dto.Quantity,
-                    PriceAtAddition = dto.VariantId.HasValue
-                        ? product.ProductVariants.First(v => v.VariantId == dto.VariantId).Price
-                        : product.BasePrice
-                };
+                    var variant = product.ProductVariants.FirstOrDefault(v => v.VariantId == dto.VariantId);
+                    if (variant == null || !variant.IsAvailable)
+                        throw new Exception($"Variant {dto.VariantId} not available.");
+                    if (variant.StockQuantity < dto.Quantity)
+                        throw new Exception($"Insufficient stock for variant {dto.VariantId}.");
+                }
+                else
+                {
+                    if (product.StockQuantity < dto.Quantity)
+                        throw new Exception($"Insufficient stock for product {dto.ProductId}.");
+                }
 
-                cart.CartItems.Add(newItem);
+                var existingItem = cart.CartItems.FirstOrDefault(ci =>
+                    ci.ProductId == dto.ProductId && ci.VariationId == dto.VariantId);
+
+                if (existingItem != null)
+                {
+                    existingItem.Quantity += dto.Quantity;
+                }
+                else
+                {
+                    var variant = dto.VariantId.HasValue
+                            ? product.ProductVariants.FirstOrDefault(v => v.VariantId == dto.VariantId) : null;
+                    var newItem = new CartItem
+                    {
+                        ProductId = dto.ProductId,
+                        VariationId = dto.VariantId,
+                        Quantity = dto.Quantity,
+                        PriceAtAddition = variant != null
+                                    ? (variant.Price - (variant.Price * (variant.DiscountPercentage ?? 0) / 100))
+                                    : product.BasePrice
+                    };
+
+                    cart.CartItems.Add(newItem);
+                }
             }
 
             if (cart.CartId == 0)
@@ -89,6 +97,7 @@ namespace Jumia_Api.Application.Services
 
             await _unitOfWork.SaveChangesAsync();
         }
+
 
         public async Task UpdateItemQuantityAsync(int customerId, int cartItemId, int quantity)
         {

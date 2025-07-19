@@ -125,6 +125,20 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 product.UpdatedAt = DateTime.UtcNow;
             }
         }
+
+        public async Task<List<Product>> GetbyIdsWithVariantsAndAttributesAsync(List<int> productIds)
+        {
+            return await _dbSet.Where(p=>productIds.Contains(p.ProductId))
+            .AsSplitQuery()
+            .Include(p => p.Seller)
+                    .Include(p => p.Category)
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.ProductVariants)
+                    .ThenInclude(v => v.Attributes)
+                    .Include(p => p.productAttributeValues)
+                    .ThenInclude(av => av.ProductAttribute)
+                    .ToListAsync();
+        }
     }
 }
 
