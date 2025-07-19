@@ -4,6 +4,7 @@ using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jumia_Api.Infrastructure.Context.Migrations
 {
     [DbContext(typeof(JumiaDbContext))]
-    partial class JumiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250717145844_updateorder")]
+    partial class updateorder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -425,16 +428,11 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<int?>("VariationId")
-                        .HasColumnType("int");
-
                     b.HasKey("CartItemId");
 
                     b.HasIndex("CartId");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("VariationId");
 
                     b.ToTable("CartItems");
                 });
@@ -1409,7 +1407,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
             modelBuilder.Entity("Jumia_Api.Domain.Models.CartItem", b =>
                 {
                     b.HasOne("Jumia_Api.Domain.Models.Cart", "Cart")
-                        .WithMany("CartItems")
+                        .WithMany()
                         .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1420,15 +1418,9 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Jumia_Api.Domain.Models.ProductVariant", "ProductVariant")
-                        .WithMany()
-                        .HasForeignKey("VariationId");
-
                     b.Navigation("Cart");
 
                     b.Navigation("Product");
-
-                    b.Navigation("ProductVariant");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Category", b =>
@@ -1769,11 +1761,6 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Navigation("SellerRelationships");
 
                     b.Navigation("Withdrawals");
-                });
-
-            modelBuilder.Entity("Jumia_Api.Domain.Models.Cart", b =>
-                {
-                    b.Navigation("CartItems");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Category", b =>
