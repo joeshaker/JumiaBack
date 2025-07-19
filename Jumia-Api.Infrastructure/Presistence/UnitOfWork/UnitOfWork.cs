@@ -22,6 +22,9 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         private ICartRepo? _cartRepo;
         private ICartItemRepo? _cartItemRepo;
         private ICustomerRepo? _customerRepo;
+        private IWishlistItemRepo? _wishlistItemRepo;
+        private IWishlistRepo? _wishlistRepo;
+
 
         private readonly Dictionary<Type, object> _repositories = new();
 
@@ -54,7 +57,10 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
         public IOrderRepository OrderRepo => _orderRepository ?? new OrderRepository(_context);
 
-    
+        public IWishlistItemRepo WishlistItemRepo => _wishlistItemRepo ?? new WishlistItemRepo(_context);
+        public IWishlistRepo WishlistRepo => _wishlistRepo ?? new WishlistRepo(_context);
+
+
 
 
 

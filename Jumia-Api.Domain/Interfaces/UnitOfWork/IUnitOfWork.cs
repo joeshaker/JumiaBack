@@ -22,6 +22,9 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
 
        IOrderRepository OrderRepo { get; }
 
+        IWishlistRepo WishlistRepo { get; }
+        IWishlistItemRepo WishlistItemRepo { get; }
+
         Task<int> SaveChangesAsync();
 
 
