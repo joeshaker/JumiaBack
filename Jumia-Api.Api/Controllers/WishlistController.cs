@@ -24,11 +24,11 @@ namespace Jumia_Api.Api.Controllers
             return Ok(wishlist);
         }
 
-        [HttpPost("items")]
-        public async Task<IActionResult> AddItem([FromBody] AddToWishlistDto dto)
+        [HttpPost("items/{productId}")]
+        public async Task<IActionResult> AddItem( int productId)
         {
             int customerId = GetCustomerId();
-            await _wishlistService.AddItemAsync(customerId, dto);
+            await _wishlistService.AddItemAsync(customerId, productId);
             return Ok();
         }
 

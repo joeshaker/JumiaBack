@@ -36,24 +36,24 @@ namespace Jumia_Api.Application.Services
             return _mapper.Map<WishlistDto>(wishlist);
         }
 
-        public async Task AddItemAsync(int customerId, AddToWishlistDto dto)
+        public async Task AddItemAsync(int customerId, int productId)
         {
             var wishlist = await _unitOfWork.WishlistRepo.GetCustomerWishlistAsync(customerId)
                           ?? new Wishlist { CustomerId = customerId };
 
-            var product = await _unitOfWork.ProductRepo.GetByIdAsync(dto.ProductId);
+            var product = await _unitOfWork.ProductRepo.GetByIdAsync(productId);
             if (product == null || !product.IsAvailable)
                 throw new Exception("Product not available.");
 
             var existingItem = await _unitOfWork.WishlistItemRepo
-                .GetWishlistItemAsync(wishlist.WishlistId, dto.ProductId);
+                .GetWishlistItemAsync(wishlist.WishlistId, productId);
 
             if (existingItem != null)
                 throw new Exception("Item already in wishlist.");
 
             var newItem = new WishlistItem
             {
-                ProductId = dto.ProductId,
+                ProductId = productId,
                 WishlistId = wishlist.WishlistId
             };
 

@@ -10,7 +10,7 @@ namespace Jumia_Api.Application.Interfaces
     public interface IWishlistService  // Changed from 'class' to 'interface'
     {
         Task<WishlistDto> GetWishlistAsync(int customerId);
-        Task AddItemAsync(int customerId, AddToWishlistDto dto);
+        Task AddItemAsync(int customerId, int productId);
         Task RemoveItemAsync(int customerId, int wishlistItemId);
         Task ClearWishlistAsync(int customerId);
     }
