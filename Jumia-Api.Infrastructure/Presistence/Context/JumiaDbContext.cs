@@ -14,7 +14,6 @@ namespace Jumia_Api.Infrastructure.Presistence.Context
 
         public virtual DbSet<Admin> Admins { get; set; }
      
-
         public virtual DbSet<Affiliate> Affiliates { get; set; }
 
         public virtual DbSet<AffiliateCommission> AffiliateCommissions { get; set; }
@@ -47,43 +46,24 @@ namespace Jumia_Api.Infrastructure.Presistence.Context
 
         public virtual DbSet<ProductImage> ProductImages { get; set; }
 
-
-
         public virtual DbSet<ProductVariant> ProductVariants { get; set; }
-
-
 
         public virtual DbSet<Rating> Ratings { get; set; }
 
-
-
         public virtual DbSet<ReviewImage> ReviewImages { get; set; }
-
-
-
-
 
         public virtual DbSet<Seller> Sellers { get; set; }
 
-
-
         public virtual DbSet<SubOrder> SubOrders { get; set; }
 
-      
-
-     
-
         public virtual DbSet<UserCoupon> UserCoupons { get; set; }
-
  
-
-   
-
         public virtual DbSet<VariantAttribute> VariantAttributes { get; set; }
 
         public virtual DbSet<Wishlist> Wishlists { get; set; }
 
         public virtual DbSet<WishlistItem> WishlistItems { get; set; }
+
 
     }
 }

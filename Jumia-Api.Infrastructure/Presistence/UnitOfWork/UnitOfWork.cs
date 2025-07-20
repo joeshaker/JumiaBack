@@ -15,6 +15,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         private IProductRepo? _productRepo;
         private IProductAttributeRepo? _productAttributeRepo;
         private readonly Dictionary<Type, object> _repositories = new();
+        private ICouponRepo? _couponRepo;
 
 
 
@@ -26,12 +27,16 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
         public IProductRepo ProductRepo => _productRepo ??= new ProductRepo(_context);
 
-
-   
         public ICategoryRepo CategoryRepo => _categoryRepo ?? new CategoryRepository(_context);
+
+        public ICouponRepo CouponRepo => _couponRepo ?? new CouponRepository(_context);
+
+        public IUserCouponRepo UserCouponRepo => new UserCouponRepository(_context);
 
 
         public IProductAttributeRepo ProductAttributeRepo => _productAttributeRepo ?? new ProductAttributeRepo(_context);
+
+
 
         public void Dispose()
         {

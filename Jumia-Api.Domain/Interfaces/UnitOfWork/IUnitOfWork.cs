@@ -14,7 +14,11 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
         IProductRepo ProductRepo { get; }
         IGenericRepo<T> Repository<T>() where T : class;
          ICategoryRepo CategoryRepo { get; }
-       
+        ICouponRepo CouponRepo { get; }
+
+        IUserCouponRepo UserCouponRepo { get; }
+
+
 
         Task<int> SaveChangesAsync();
 

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Jumia_Api.Api.Controllers
 {
@@ -17,16 +18,13 @@ namespace Jumia_Api.Api.Controllers
         private readonly IOtpService _otpService;
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
-        private readonly IJwtService _jwtService;
-        private readonly UserManager<AppUser> _userManager;
-        public AuthController(IOtpService otpService, IEmailService emailService, IUserService userService, IAuthService authService, IJwtService jwtService, UserManager<AppUser> userManager)
+       
+        public AuthController(IOtpService otpService, IEmailService emailService, IUserService userService, IAuthService authService)
         {
             _otpService = otpService;
             _emailService = emailService;
             _userService = userService;
             _authService = authService;
-            _jwtService = jwtService;
-            _userManager = userManager;
         }
 
         [HttpPost("email-check")]
@@ -57,35 +55,75 @@ namespace Jumia_Api.Api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] PasswordSetupDto dto)
         {
-            var (success,token, message) = await _authService.RegisterAsync(dto);
+            var result = await _authService.RegisterAsync(dto);
 
-            if (!success)
+            if (!result.Successed)
             {
-                return BadRequest(new { message });
+                return BadRequest(new { result.Message });
             }
-            SetJwtCookie(token);
-            // in the front-end logic, after the user registers, direct them to the update personal details page if isFirstTimeLogin is true.
-            return Ok(new { message , isFirstTimeLogin = true});
-           
+            SetJwtCookie(result.Token);
 
+            var userInfo = new
+            {
+                result.UserId,
+                result.Email,
+                result.UserName
+            };
+
+            var userInfoJson = JsonSerializer.Serialize(userInfo);
+            Response.Cookies.Append("UserInfo", userInfoJson, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
+            // in the front-end logic, after the user registers, direct them to the update personal details page if isFirstTimeLogin is true.
+            return Ok(new { result.Message , isFirstTimeLogin = true});
+           
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
-            var (success, token, message) = await _authService.LoginAsync(dto);
+            var result = await _authService.LoginAsync(dto);
 
-            if (!success)
+            if (!result.Successed)
             {
-                return Unauthorized(new { message });
+                return Unauthorized(new { result.Message });
             }
 
+            SetJwtCookie(result.Token);
 
-            return Ok(new { message, token });
+            var userInfo = new
+            {
+                result.UserId,
+                result.Email,
+                result.UserName
+            };
+
+            var userInfoJson = JsonSerializer.Serialize(userInfo);
+            Response.Cookies.Append("UserInfo", userInfoJson, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
+
+            return Ok(new { result.Message, result.Token });
 
         }
 
-       
+        [HttpDelete("logout")]
+        [Authorize]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("JumiaAuthCookie");
+            return Ok(new { message = "Logged out successfully" });
+
+        }
+
 
         private void SetJwtCookie(string token)
         {
