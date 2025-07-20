@@ -21,5 +21,7 @@ namespace Jumia_Api.Domain.Models
 
         // Navigation property
         public Customer Customer { get; set; }
+
+        public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
     }
 }
