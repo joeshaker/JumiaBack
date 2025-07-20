@@ -12,7 +12,7 @@ namespace Jumia_Api.Application.Interfaces
     
         Task<AuthResult> RegisterAsync(PasswordSetupDto passsetdto);
 
-  
+        public Task<(bool Success, string Message)> CreateRoleAsync(string roleName);
 
 
 

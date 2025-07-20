@@ -12,12 +12,25 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
 
         IProductAttributeRepo ProductAttributeRepo { get; }
         IProductRepo ProductRepo { get; }
+        IAddressRepo AddressRepo { get; }
+        ICartRepo CartRepo { get; }
         IGenericRepo<T> Repository<T>() where T : class;
          ICategoryRepo CategoryRepo { get; }
+
         ICouponRepo CouponRepo { get; }
 
         IUserCouponRepo UserCouponRepo { get; }
 
+
+
+
+        ICartItemRepo CartItemRepo { get; }
+        ICustomerRepo CustomerRepo { get; }
+
+       IOrderRepository OrderRepo { get; }
+
+        IWishlistRepo WishlistRepo { get; }
+        IWishlistItemRepo WishlistItemRepo { get; }
 
 
         Task<int> SaveChangesAsync();

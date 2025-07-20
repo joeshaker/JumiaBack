@@ -52,6 +52,9 @@ namespace Jumia_Api.Domain.Models
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        [MaxLength(20)]
+        public string Status { get; set; } = "pending";
+
         [ForeignKey("Affiliate")]
         public int? AffiliateId { get; set; }
 

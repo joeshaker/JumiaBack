@@ -89,6 +89,7 @@ namespace Jumia_Api.Api.Controllers
             var result = await _authService.LoginAsync(dto);
 
             if (!result.Successed)
+
             {
                 return Unauthorized(new { result.Message });
             }
@@ -142,9 +143,18 @@ namespace Jumia_Api.Api.Controllers
         {
             return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
+        [HttpPost]
+        public async Task<IActionResult> CreateRole([FromQuery]string role)
+        {
+            var (success, message) = await _authService.CreateRoleAsync(role);
+
+            if (success)
+                return Ok(message);
+
+            return BadRequest(message);
+        }
 
 
-      
     }
 }
 

@@ -425,11 +425,16 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<int?>("VariationId")
+                        .HasColumnType("int");
+
                     b.HasKey("CartItemId");
 
                     b.HasIndex("CartId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("VariationId");
 
                     b.ToTable("CartItems");
                 });
@@ -607,6 +612,11 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.Property<decimal>("ShippingFee")
                         .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<decimal>("TaxAmount")
                         .HasColumnType("decimal(10, 2)");
@@ -1399,7 +1409,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
             modelBuilder.Entity("Jumia_Api.Domain.Models.CartItem", b =>
                 {
                     b.HasOne("Jumia_Api.Domain.Models.Cart", "Cart")
-                        .WithMany()
+                        .WithMany("CartItems")
                         .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1410,9 +1420,15 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Jumia_Api.Domain.Models.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("VariationId");
+
                     b.Navigation("Cart");
 
                     b.Navigation("Product");
+
+                    b.Navigation("ProductVariant");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Category", b =>
@@ -1753,6 +1769,11 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Navigation("SellerRelationships");
 
                     b.Navigation("Withdrawals");
+                });
+
+            modelBuilder.Entity("Jumia_Api.Domain.Models.Cart", b =>
+                {
+                    b.Navigation("CartItems");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Category", b =>

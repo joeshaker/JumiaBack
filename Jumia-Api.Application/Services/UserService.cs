@@ -21,28 +21,29 @@ using System.Threading.Tasks;
 namespace Jumia_Api.Application.Services
 {
 
-    public class UserService: IUserService
+    public class UserService : IUserService
     {
-   
+
         private readonly UserManager<AppUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
 
-        public UserService(IUnitOfWork unitOfWork , IMapper mapper,UserManager<AppUser> userManager)
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
         {
 
-             _userManager = userManager;
-              _unitOfWork = unitOfWork;
-           _mapper = mapper;
-
+            _userManager = userManager;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            _roleManager = roleManager;
         }
         public async Task<bool> CheckPasswordAsync(AppUser user, string password)
         {
             return await _userManager.CheckPasswordAsync(user, password);
         }
-        
-         public async Task<UserProfileDto> GetUserProfileAsync(string userId)
+
+        public async Task<UserProfileDto> GetUserProfileAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
 
@@ -74,13 +75,18 @@ namespace Jumia_Api.Application.Services
         {
             return _userManager.FindByEmailAsync(email);
         }
+        public async Task<string?> GetUserRoleAsync(AppUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            return roles.FirstOrDefault();
+        }
 
         public async Task<bool> UserExistsAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email) != null;
 
         }
-          public async Task UpdateUserProfileAsync(string userId, UpdateUserDto updateDto)
+        public async Task UpdateUserProfileAsync(string userId, UpdateUserDto updateDto)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -89,9 +95,9 @@ namespace Jumia_Api.Application.Services
             }
 
             _mapper.Map(updateDto, user);
-            user.Id = userId; 
+            user.Id = userId;
             await _userManager.UpdateAsync(user);
-           
+
         }
         public async Task<AppUser> GetUserByIdAsync(string userId)
         {
@@ -103,5 +109,18 @@ namespace Jumia_Api.Application.Services
             return await _userManager.UpdateAsync(user);
         }
 
+        public async Task AddUserToRoleAsync(AppUser user, string role)
+        {
+            var roleExists = await _roleManager.RoleExistsAsync(role);
+            if (!roleExists)
+            {
+                await _roleManager.CreateAsync(new IdentityRole(role));
+            }
+            if (!await _userManager.IsInRoleAsync(user, role))
+            {
+                await _userManager.AddToRoleAsync(user, role);
+            }
+
+        }
     }
-    }
+}
