@@ -1,4 +1,5 @@
-﻿using Jumia_Api.Application.Dtos.AuthDtos;
+﻿using Jumia_Api.Api.Contracts.Results;
+using Jumia_Api.Application.Dtos.AuthDtos;
 using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Domain.Models;
@@ -23,18 +24,27 @@ namespace Jumia_Api.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<(bool Success, string Token, string Message)> LoginAsync(LoginDTO dto)
+        public async Task<AuthResult> LoginAsync(LoginDTO dto)
         {
             var user = await _userService.FindByEmailAsync(dto.Email);
             if (user == null)
             {
-                return (false, null, "User not found");
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "User not found"
+                };
             }
             var passwordValid = await _userService.CheckPasswordAsync(user, dto.Password);
             if (!passwordValid)
             {
-                return (false, null, "Invalid password");
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "Invalid password"
+                };
             }
+
 
             var role = await _userService.GetUserRoleAsync(user);
             int userTypeId=0;
@@ -45,35 +55,56 @@ namespace Jumia_Api.Application.Services
             } 
                 
             var token = await _jwtService.GenerateJwtTokenAsync(user, role, userTypeId);
-            return (true, token, "Login successful");
+             return new AuthResult
+            {
+                Successed = true,
+                Token = token,
+                Message = "Login successful",
+                UserId = user.Id,
+                Email = user.Email,
+                UserName = user.FirstName + " " + user.LastName
+            };
+
 
         }
 
-        public async Task<(bool Success,string Token, string Message)> RegisterAsync(PasswordSetupDto dto)
+        public async Task<AuthResult> RegisterAsync(PasswordSetupDto dto)
         {
             if(dto.Password != dto.ConfirmPassword)
             {
-                return (false, null,"Passwords do not match");
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "Passwords do not match"
+                };
             }
 
             var otpValid = _otpService.ValidateOtp(dto.Email, dto.OtpCode);
             if (!otpValid)
             {
-                return (false,null, "Invalid or expired OTP code");
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "Invalid or expired OTP code"
+                };
             }
 
             var result = await _userService.CreateUserAsync(dto.Email, dto.Password);
             if (!result.Succeeded)
             {
                 var errors = string.Join(" | ", result.Errors.Select(e => e.Description));
-                return (false,null, $"User creation failed: {errors}");
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = $"User creation failed: {errors}"
+                };
             }
             _otpService.RemoveOtp(dto.Email);
             // Assign default role to the user
             var user = await _userService.FindByEmailAsync(dto.Email);
             if (user == null)
             {
-                return (false, null, "User not found after creation");
+                return new AuthResult { Successed = false, Message = "User not found after creation" };
             }
            
             await _userService.AddUserToRoleAsync(user, "Customer");
@@ -89,7 +120,16 @@ namespace Jumia_Api.Application.Services
             //Generate token after registeration to allow user to login immediately
             var token = await _jwtService.GenerateJwtTokenAsync(user, "Customer",customer.CustomerId);
 
-            return (true, token,"User registered successfully");
+            return new AuthResult
+            {
+                Successed = true,
+                Token = token,
+                Message = "User registered successfully",
+                UserId = user.Id,
+                Email = user.Email,
+                UserName = user.FirstName + " " + user.LastName
+
+            };
 
         }
 

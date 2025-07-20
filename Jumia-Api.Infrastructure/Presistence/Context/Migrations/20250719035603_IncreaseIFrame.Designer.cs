@@ -4,6 +4,7 @@ using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jumia_Api.Infrastructure.Context.Migrations
 {
     [DbContext(typeof(JumiaDbContext))]
-    partial class JumiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250719035603_IncreaseIFrame")]
+    partial class IncreaseIFrame
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -663,18 +666,55 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(10, 2)");
 
-                    b.Property<int?>("variationId")
-                        .HasColumnType("int");
-
                     b.HasKey("OrderItemId");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("SubOrderId");
 
-                    b.HasIndex("variationId");
-
                     b.ToTable("OrderItems");
+                });
+
+            modelBuilder.Entity("Jumia_Api.Domain.Models.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IframeUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymobOrderId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PaymobTransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Product", b =>
@@ -1515,20 +1555,25 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .IsRequired();
 
                     b.HasOne("Jumia_Api.Domain.Models.SubOrder", "SubOrder")
-                        .WithMany("OrderItems")
+                        .WithMany()
                         .HasForeignKey("SubOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Jumia_Api.Domain.Models.ProductVariant", "ProductVariant")
-                        .WithMany()
-                        .HasForeignKey("variationId");
-
                     b.Navigation("Product");
 
-                    b.Navigation("ProductVariant");
-
                     b.Navigation("SubOrder");
+                });
+
+            modelBuilder.Entity("Jumia_Api.Domain.Models.Payment", b =>
+                {
+                    b.HasOne("Jumia_Api.Domain.Models.Order", "Order")
+                        .WithOne("Payment")
+                        .HasForeignKey("Jumia_Api.Domain.Models.Payment", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Product", b =>
@@ -1646,7 +1691,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
             modelBuilder.Entity("Jumia_Api.Domain.Models.SubOrder", b =>
                 {
                     b.HasOne("Jumia_Api.Domain.Models.Order", "Order")
-                        .WithMany("SubOrders")
+                        .WithMany()
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1712,7 +1757,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .IsRequired();
 
                     b.HasOne("Jumia_Api.Domain.Models.Wishlist", "Wishlist")
-                        .WithMany("WishlistItems")
+                        .WithMany()
                         .HasForeignKey("WishlistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1799,7 +1844,8 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Order", b =>
                 {
-                    b.Navigation("SubOrders");
+                    b.Navigation("Payment")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Product", b =>
@@ -1819,16 +1865,6 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
             modelBuilder.Entity("Jumia_Api.Domain.Models.ProductVariant", b =>
                 {
                     b.Navigation("Attributes");
-                });
-
-            modelBuilder.Entity("Jumia_Api.Domain.Models.SubOrder", b =>
-                {
-                    b.Navigation("OrderItems");
-                });
-
-            modelBuilder.Entity("Jumia_Api.Domain.Models.Wishlist", b =>
-                {
-                    b.Navigation("WishlistItems");
                 });
 #pragma warning restore 612, 618
         }

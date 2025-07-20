@@ -23,5 +23,8 @@ namespace Jumia_Api.Application.Dtos.OrderDtos
         public DateTime UpdatedAt { get; set; }
         public int? AffiliateId { get; set; }
         public string AffiliateCode { get; set; }
+        public string Status { get; set; } = "pending";
+        //list of suborders
+        public List<SubOrderDTO> SubOrders { get; set; } = new List<SubOrderDTO>();
     }
 }
