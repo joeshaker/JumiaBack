@@ -26,6 +26,8 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         private IWishlistRepo? _wishlistRepo;
 
 
+        private IRatingRepo? _ratingRepo;
+
         private readonly Dictionary<Type, object> _repositories = new();
         private ICouponRepo? _couponRepo;
 
@@ -61,10 +63,10 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
         public IOrderRepository OrderRepo => _orderRepository ?? new OrderRepository(_context);
 
+        public IRatingRepo RatingRepo => _ratingRepo ?? new RatingRepo(_context);
+
         public IWishlistItemRepo WishlistItemRepo => _wishlistItemRepo ?? new WishlistItemRepo(_context);
         public IWishlistRepo WishlistRepo => _wishlistRepo ?? new WishlistRepo(_context);
-
-
 
 
 

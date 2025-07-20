@@ -29,6 +29,9 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
 
        IOrderRepository OrderRepo { get; }
 
+
+        IRatingRepo RatingRepo { get; }
+
         IWishlistRepo WishlistRepo { get; }
         IWishlistItemRepo WishlistItemRepo { get; }
 

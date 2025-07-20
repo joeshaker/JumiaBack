@@ -65,5 +65,6 @@ namespace Jumia_Api.Infrastructure.Presistence.Context
         public virtual DbSet<WishlistItem> WishlistItems { get; set; }
 
 
+
     }
 }
