@@ -23,6 +23,8 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         private ICartItemRepo? _cartItemRepo;
         private ICustomerRepo? _customerRepo;
 
+        private IRatingRepo? _ratingRepo;
+
         private readonly Dictionary<Type, object> _repositories = new();
 
 
@@ -54,9 +56,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
         public IOrderRepository OrderRepo => _orderRepository ?? new OrderRepository(_context);
 
-    
-
-
+        public IRatingRepo RatingRepo => _ratingRepo ?? new RatingRepo(_context);
 
         public void Dispose()
         {

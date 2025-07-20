@@ -22,6 +22,8 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
 
        IOrderRepository OrderRepo { get; }
 
+        IRatingRepo RatingRepo { get; }
+
         Task<int> SaveChangesAsync();
 
 

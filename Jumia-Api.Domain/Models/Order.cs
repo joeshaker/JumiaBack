@@ -66,5 +66,7 @@ namespace Jumia_Api.Domain.Models
         public Address Address { get; set; }
         public Coupon Coupon { get; set; }
         public Affiliate Affiliate { get; set; }
+        public ICollection<SubOrder> SubOrders { get; set; }
+        //public Payment Payment { get; set; }
     }
 }
