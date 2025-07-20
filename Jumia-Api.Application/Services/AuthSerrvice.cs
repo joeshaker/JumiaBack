@@ -104,7 +104,7 @@ namespace Jumia_Api.Application.Services
             var user = await _userService.FindByEmailAsync(dto.Email);
             if (user == null)
             {
-                return (false, null, "User not found after creation");
+                return new AuthResult { Successed = false, Message = "User not found after creation" };
             }
            
             await _userService.AddUserToRoleAsync(user, "Customer");
