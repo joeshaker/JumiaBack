@@ -8,9 +8,9 @@ namespace Jumia_Api.Application.Interfaces
     public interface IAuthService
     {
 
-        Task<(bool Success, string Token, string Message)> LoginAsync(LoginDTO logindto);
+        Task<AuthResult> LoginAsync(LoginDTO logindto);
     
-        Task<(bool Success, string Token, string Message)> RegisterAsync(PasswordSetupDto passsetdto);
+        Task<AuthResult> RegisterAsync(PasswordSetupDto passsetdto);
 
         public Task<(bool Success, string Message)> CreateRoleAsync(string roleName);
 

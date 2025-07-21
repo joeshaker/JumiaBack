@@ -10,7 +10,7 @@ namespace Jumia_Api.Application.Interfaces
     public interface ICartService
     {
         Task<CartDto> GetCartAsync(int customerId);
-        Task AddItemAsync(int customerId, AddToCartDto dto);
+        Task AddItemsAsync(int customerId, List<AddToCartDto> dtos );
         Task UpdateItemQuantityAsync(int customerId, int cartItemId, int quantity);
         Task RemoveItemAsync(int customerId, int cartItemId);
         Task ClearCartAsync(int customerId);

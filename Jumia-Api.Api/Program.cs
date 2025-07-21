@@ -110,7 +110,16 @@ namespace Jumia_Api.Api
     });
             });
 
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngularDev", policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200")
+                    .AllowCredentials()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+                });
+            });
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
@@ -119,6 +128,7 @@ namespace Jumia_Api.Api
 
             // Swagger/OpenAPI configuration
             builder.Services.AddEndpointsApiExplorer();
+
             //builder.Services.AddSwaggerGen(c =>
             //{
             //    c.SwaggerDoc("v1", new OpenApiInfo
@@ -127,12 +137,11 @@ namespace Jumia_Api.Api
             //        Version = "v1",
             //        Description = "API for Jumia Application",
             //    });
-            //});
-
-
+ 
 
 
             var app = builder.Build();
+            app.UseCors("AllowAngularDev");
 
             //Enable Swagger middleware
             // Configure the HTTP request pipeline.
