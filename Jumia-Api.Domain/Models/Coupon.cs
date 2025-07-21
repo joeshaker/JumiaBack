@@ -16,7 +16,6 @@ namespace Jumia_Api.Domain.Models
         [Required]
         [MaxLength(50)]
         public string Code { get; set; }
-
         public string Description { get; set; }
 
         [Required]
@@ -35,11 +34,8 @@ namespace Jumia_Api.Domain.Models
 
         [Required]
         public DateTime EndDate { get; set; }
-
         public bool IsActive { get; set; } = true;
-
         public int? UsageLimit { get; set; }
-
         public int UsageCount { get; set; } = 0;
 
         // Navigation property

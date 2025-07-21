@@ -21,6 +21,8 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
         {
             return await _dbSet
                 .Where(o => o.CustomerId == customerId)
+                .Include(o=>o.SubOrders)
+                .ThenInclude(o=>o.OrderItems)
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -32,6 +34,8 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 .Include(o => o.Customer)
                 .Include(o => o.Address)
                 .Include(o => o.Coupon)
+                .Include(o => o.SubOrders)
+                .ThenInclude(so => so.OrderItems)
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -42,6 +46,8 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 .Include(o => o.Customer)
                 .Include(o => o.Address)
                 .Include(o => o.Coupon)
+                .Include(o => o.SubOrders)
+                .ThenInclude(so => so.OrderItems)
                 .AsNoTracking()
                 .ToListAsync();
         }

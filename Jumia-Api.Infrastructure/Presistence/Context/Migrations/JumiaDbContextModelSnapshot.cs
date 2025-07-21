@@ -663,11 +663,16 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(10, 2)");
 
+                    b.Property<int?>("variationId")
+                        .HasColumnType("int");
+
                     b.HasKey("OrderItemId");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("SubOrderId");
+
+                    b.HasIndex("variationId");
 
                     b.ToTable("OrderItems");
                 });
@@ -1510,12 +1515,18 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .IsRequired();
 
                     b.HasOne("Jumia_Api.Domain.Models.SubOrder", "SubOrder")
-                        .WithMany()
+                        .WithMany("OrderItems")
                         .HasForeignKey("SubOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Jumia_Api.Domain.Models.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("variationId");
+
                     b.Navigation("Product");
+
+                    b.Navigation("ProductVariant");
 
                     b.Navigation("SubOrder");
                 });
@@ -1635,7 +1646,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
             modelBuilder.Entity("Jumia_Api.Domain.Models.SubOrder", b =>
                 {
                     b.HasOne("Jumia_Api.Domain.Models.Order", "Order")
-                        .WithMany()
+                        .WithMany("SubOrders")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1701,7 +1712,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .IsRequired();
 
                     b.HasOne("Jumia_Api.Domain.Models.Wishlist", "Wishlist")
-                        .WithMany()
+                        .WithMany("WishlistItems")
                         .HasForeignKey("WishlistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1786,6 +1797,11 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Navigation("UserCoupons");
                 });
 
+            modelBuilder.Entity("Jumia_Api.Domain.Models.Order", b =>
+                {
+                    b.Navigation("SubOrders");
+                });
+
             modelBuilder.Entity("Jumia_Api.Domain.Models.Product", b =>
                 {
                     b.Navigation("ProductImages");
@@ -1803,6 +1819,16 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
             modelBuilder.Entity("Jumia_Api.Domain.Models.ProductVariant", b =>
                 {
                     b.Navigation("Attributes");
+                });
+
+            modelBuilder.Entity("Jumia_Api.Domain.Models.SubOrder", b =>
+                {
+                    b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("Jumia_Api.Domain.Models.Wishlist", b =>
+                {
+                    b.Navigation("WishlistItems");
                 });
 #pragma warning restore 612, 618
         }
