@@ -1,4 +1,5 @@
-﻿using Jumia_Api.Application.Dtos.ProductDtos;
+﻿using Jumia_Api.Application.Common.Results;
+using Jumia_Api.Application.Dtos.ProductDtos;
 using Jumia_Api.Domain.Interfaces.Repositories;
 using Jumia_Api.Domain.Models;
 using Jumia_Api.Infrastructure.Presistence.Context;
@@ -29,13 +30,15 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
        
 
-        public async Task<List<Product>> GetProductsByCategoryIdsAsync(List<int> categoryIds,
+        public async Task<PagedResult<Product>> GetProductsByCategoryIdsAsync(List<int> categoryIds,
                                                                 Dictionary<string, string> attributeFilters = null,
                                                                 decimal? minPrice = null,
-                                                                decimal? maxPrice = null)
+                                                                decimal? maxPrice = null,
+                                                                int pageNumber=1,
+                                                                int pageSize =20)
         {
             var query = _dbSet
-                .Where(p => categoryIds.Contains(p.CategoryId))
+                .Where(p => categoryIds.Contains(p.CategoryId)).Include(p=>p.ProductVariants)
                 .AsQueryable();
 
             if (attributeFilters != null && attributeFilters.Any())
@@ -56,8 +59,19 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
             if (maxPrice.HasValue)
                 query = query.Where(p => p.BasePrice <= maxPrice.Value);
 
-            return await query.AsNoTracking().ToListAsync();
+            var totalItems = await query.CountAsync();
+
+            var products = await query.Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return new PagedResult<Product>(products, totalItems, pageNumber, pageSize);
         }
+
+
+
+
 
         public async Task<IEnumerable<Product>> GetProductsBySellerId(int sellerId)
             => await _dbSet
@@ -139,6 +153,8 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                     .ThenInclude(av => av.ProductAttribute)
                     .ToListAsync();
         }
+
+      
     }
 }
 

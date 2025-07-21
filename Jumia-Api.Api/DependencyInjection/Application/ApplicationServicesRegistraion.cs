@@ -1,6 +1,8 @@
 ﻿using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Application.MappingProfiles;
 using Jumia_Api.Application.Services;
+
+
 using Jumia_Api.Domain.Interfaces.Repositories;
 using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Infrastructure.Presistence.Context;
@@ -43,11 +45,16 @@ namespace Jumia_Api.Api.DependencyInjection.Application
 
             services.AddScoped<ICartService, CartService>();
 
+
+            services.AddScoped<IFileService, FileService>();
+
+
             services.AddHttpClient<IPaymentService,PaymentService>();
             services.AddScoped<IRatingService, RatingService>();
             
 
             services.AddScoped<IWishlistService, WishlistService>();
+
 
 
 
