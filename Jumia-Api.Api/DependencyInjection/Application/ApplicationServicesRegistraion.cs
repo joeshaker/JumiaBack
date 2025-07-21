@@ -2,7 +2,10 @@
 using Jumia_Api.Application.MappingProfiles;
 using Jumia_Api.Application.Services;
 using Jumia_Api.Domain.Interfaces.Repositories;
+using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Infrastructure.Presistence.Context;
+using Jumia_Api.Infrastructure.Presistence.Repositories;
+using Jumia_Api.Infrastructure.Presistence.UnitOfWork;
 using Jumia_Api.Services.Implementation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +38,9 @@ namespace Jumia_Api.Api.DependencyInjection.Application
             services.AddScoped<IUserService, UserService>();
 
             services.AddScoped<IAddressService, AddressService>();
+            services.AddScoped<IAddressRepo, AddressRepo>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             services.AddScoped<ICartService, CartService>();
 
             services.AddHttpClient<IPaymentService,PaymentService>();
