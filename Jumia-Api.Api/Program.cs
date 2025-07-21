@@ -62,7 +62,7 @@ namespace Jumia_Api.Api
                     ValidAudience = jwtConfig["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig["Key"]!)),
                 };
-                
+
             });
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                .AddCookie(options =>
@@ -124,18 +124,30 @@ namespace Jumia_Api.Api
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-       
-           
+
+
             // Swagger/OpenAPI configuration
             builder.Services.AddEndpointsApiExplorer();
-        
+
+            
            
-          
+
+
+            //builder.Services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("v1", new OpenApiInfo
+            //    {
+            //        Title = "Jumia API",
+            //        Version = "v1",
+            //        Description = "API for Jumia Application",
+            //    });
+ 
+
 
 
             var app = builder.Build();
             app.UseCors("AllowAngularDev");
-
+            app.UseStaticFiles();
             //Enable Swagger middleware
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
