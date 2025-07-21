@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using Jumia_Api.Application.Common.Results;
 using Jumia_Api.Application.Dtos.ProductDtos;
 using Jumia_Api.Application.Dtos.ProductDtos.Get;
 using Jumia_Api.Application.Dtos.ProductDtos.Post;
 using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Domain.Models;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SendGrid.Helpers.Errors.Model;
@@ -16,14 +18,16 @@ namespace Jumia_Api.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ProductService> _logger;
         private readonly IMapper _mapper;
-        public ProductService(IUnitOfWork unitOfWork, ILogger<ProductService> logger, IMapper mapper)
+        private readonly IFileService _fileService;
+        public ProductService(IUnitOfWork unitOfWork, ILogger<ProductService> logger, IMapper mapper, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
+            _fileService = fileService;
         }
 
-       
+
         public  async Task DeleteProductAsync(int productId)
         {
             await _unitOfWork.ProductRepo.Delete(productId);
@@ -115,12 +119,16 @@ namespace Jumia_Api.Application.Services
 
 
 
-        public async Task<IEnumerable<ProductsUIDto>> GetProductsByCategoriesAsync(string role,ProductFilterRequestDto productFilterRequestDto)
+        public async Task<PagedResult<ProductsUIDto>> GetProductsByCategoriesAsync(string role,ProductFilterRequestDto productFilterRequestDto
+                                                                                   ,int pageNumber = 1,     
+                                                                                    int pageSize = 20)
+
         {
+
             if (productFilterRequestDto == null || !productFilterRequestDto.CategoryIds.Any())
             {
                 _logger.LogWarning("GetProductsByCategoriesAsync called with null or empty categoryIds. Empty product List is returned");
-                return Enumerable.Empty<ProductsUIDto>();
+                return new PagedResult<ProductsUIDto>(null, 0, pageNumber, pageSize);
             }
             var allCategoryIds = productFilterRequestDto.CategoryIds.Distinct().ToList();
             _logger.LogInformation($"GetProductsByCategoriesAsync called with {allCategoryIds.Count} category IDs");
@@ -139,26 +147,35 @@ namespace Jumia_Api.Application.Services
 
             allCategoryIds = allCategoryIds.Distinct().ToList();
 
-            var products =  await _unitOfWork.ProductRepo.GetProductsByCategoryIdsAsync(allCategoryIds,
+            var pagedProducts =  await _unitOfWork.ProductRepo.GetProductsByCategoryIdsAsync(allCategoryIds,
                                                                                 productFilterRequestDto.AttributeFilters,
                                                                                 productFilterRequestDto.MinPrice,
-                                                                                productFilterRequestDto.MaxPrice);
-            if (products == null || !products.Any())
+                                                                                productFilterRequestDto.MaxPrice,
+                                                                                pageNumber,
+                                                                                pageSize);
+            if (pagedProducts == null || !pagedProducts.Items.Any())
             {
                 _logger.LogWarning("No products found for the given categories.");
-                return Enumerable.Empty<ProductsUIDto>();
+                return new PagedResult<ProductsUIDto>(null, 0,pageNumber,pageSize); 
             }
 
-            _logger.LogInformation($"Found {products.Count} products for the given categories.");
+            _logger.LogInformation($"Found {pagedProducts.TotalCount} products for the given categories.");
+
+            IEnumerable<Product> filteredProducts = pagedProducts.Items;
 
             if (role != "Admin" && role != "Seller")
             {
                 // For non-seller and non-admin roles, filter out unavailable products
                 _logger.LogInformation($"Filtering products for role: {role}. Only available products will be returned.");
-                products = products.Where(p => p.IsAvailable).ToList();
-                return products.Select(p => _mapper.Map<ProductsUIDto>(p)).ToList();
+                filteredProducts = filteredProducts.Where(p => p.IsAvailable);
             }
-            return products.Select(p => _mapper.Map<ProductsUIDto>(p)).ToList();
+            return new PagedResult<ProductsUIDto>
+            {
+                Items = filteredProducts.Select(p => _mapper.Map<ProductsUIDto>(p)).ToList(),
+                TotalCount = pagedProducts.TotalCount,
+                CurrentPage = pageNumber,
+                PageSize = pageSize
+            };
 
         }
 
@@ -183,7 +200,11 @@ namespace Jumia_Api.Application.Services
 
         public async Task<int> CreateProductAsync(AddProductDto request)
         {
-           
+
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+       
             var product = _mapper.Map<Product>(request);
 
             product.StockQuantity = request.Variants.Sum(v => v.StockQuantity);
@@ -191,11 +212,33 @@ namespace Jumia_Api.Application.Services
             product.CreatedAt = DateTime.UtcNow;
             product.UpdatedAt = DateTime.UtcNow;
 
-          
+            if (request.MainImageUrl != null && _fileService.IsValidImage(request.MainImageUrl))
+            {
+                product.MainImageUrl = await _fileService.SaveFileAsync(request.MainImageUrl,"products");
+            }
+            else
+            {
+                throw new Exception("Invalid main image URL");
+            }
+
+            foreach (var image in request.AdditionalImageUrls)
+            {
+                if (!_fileService.IsValidImage(image))
+                    continue;
+
+                var imageUrl = await _fileService.SaveFileAsync(image, "products");
+                product.ProductImages.Add(new ProductImage { ImageUrl = imageUrl });
+            }
+
+
+
+
+
             var categoryAttributes = await _unitOfWork.ProductAttributeRepo
                 .GetAttributesByCategoryIdAsync(request.CategoryId);
-
-            foreach (var attr in request.Attributes)
+            if (request.Variants != null || request.Variants.Any())
+            {
+                foreach (var attr in request.Attributes)
             {
                 var attributeInDb = categoryAttributes
                     .FirstOrDefault(a => a.Name == attr.AttributeName);
@@ -213,10 +256,30 @@ namespace Jumia_Api.Application.Services
                 }
             }
 
-            foreach (var variantDto in request.Variants)
+            }
+
+            if (request.Variants != null || request.Variants.Any())
             {
-                var variant = _mapper.Map<ProductVariant>(variantDto);
-                product.ProductVariants.Add(variant);
+
+
+                    foreach (var variantDto in request.Variants)
+                {
+                    var variant = _mapper.Map<ProductVariant>(variantDto);
+                
+                    if(variantDto.VariantImageUrl != null && _fileService.IsValidImage(variantDto.VariantImageUrl))
+                    {
+                        variant.VariantImageUrl = await _fileService.SaveFileAsync(variantDto.VariantImageUrl, "products");
+                    }
+                    else
+                    {
+                        throw new Exception("Invalid variant image URL");
+                    }
+
+
+
+
+                    product.ProductVariants.Add(variant);
+                }
             }
 
             // Save everything

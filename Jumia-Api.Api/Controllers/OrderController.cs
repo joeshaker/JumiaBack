@@ -77,5 +77,21 @@ namespace Jumia_Api.Api.Controllers
 
             return NoContent();
         }
+
+        //get order for current customer
+        [HttpGet("current-customer")]
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetCurrentCustomerOrders()
+        {
+            int customerId = GetCustomerId();
+
+            var orders = await _orderService.GetOrdersByCustomerIdAsync(customerId);
+            if (orders == null || !orders.Any())
+                return NotFound("No orders found for the current customer.");
+            return Ok(orders);
+        }
+        private int GetCustomerId()
+        {
+            return int.Parse(User.FindFirst("userTypeId").Value);
+        }
     }
 }
