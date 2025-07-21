@@ -128,14 +128,14 @@ namespace Jumia_Api.Api
            
             // Swagger/OpenAPI configuration
             builder.Services.AddEndpointsApiExplorer();
-        
+            
            
           
 
 
             var app = builder.Build();
             app.UseCors("AllowAngularDev");
-
+            app.UseStaticFiles();
             //Enable Swagger middleware
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

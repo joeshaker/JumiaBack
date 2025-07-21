@@ -40,8 +40,9 @@ namespace Jumia_Api.Application.Services
             int userTypeId=0;
             if (role == "Customer")
             {
-                 var customer = _unitOfWork.CustomerRepo.GetCustomerByUserIdAsync(user.Id);
-                userTypeId = customer.Id;
+                 var customer =await _unitOfWork.CustomerRepo.GetCustomerByUserIdAsync(user.Id);
+              
+                userTypeId = customer.CustomerId;
             } 
                 
             var token = await _jwtService.GenerateJwtTokenAsync(user, role, userTypeId);
