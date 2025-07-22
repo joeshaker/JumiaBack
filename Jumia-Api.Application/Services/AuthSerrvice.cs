@@ -62,7 +62,9 @@ namespace Jumia_Api.Application.Services
                 Message = "Login successful",
                 UserId = user.Id,
                 Email = user.Email,
-                UserName = user.FirstName + " " + user.LastName
+                UserName = user.FirstName + " " + user.LastName,
+                UserRole = role
+                
             };
 
 
@@ -89,7 +91,11 @@ namespace Jumia_Api.Application.Services
                 };
             }
 
-            var result = await _userService.CreateUserAsync(dto.Email, dto.Password);
+            var result = await _userService.CreateUserAsync(
+
+                dto.Email, dto.Password, dto.FirstName, dto.LastName, dto.BirthDate, dto.Gender, dto.Address
+
+                );
             if (!result.Succeeded)
             {
                 var errors = string.Join(" | ", result.Errors.Select(e => e.Description));
@@ -104,7 +110,11 @@ namespace Jumia_Api.Application.Services
             var user = await _userService.FindByEmailAsync(dto.Email);
             if (user == null)
             {
-                return (false, null, "User not found after creation");
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "User not found after creation"
+                };
             }
            
             await _userService.AddUserToRoleAsync(user, "Customer");
@@ -112,6 +122,11 @@ namespace Jumia_Api.Application.Services
             var customer = new Customer()
             {
                 UserId=user.Id,
+                //FullName = $"{dto.FirstName} {dto.LastName}",
+                //Gender = dto.Gender,
+                //Address = dto.Address,
+                //BirthDate = dto.BirthDate
+
             };
             // Add customer to the database
             await _unitOfWork.CustomerRepo.AddAsync(customer);
@@ -127,7 +142,8 @@ namespace Jumia_Api.Application.Services
                 Message = "User registered successfully",
                 UserId = user.Id,
                 Email = user.Email,
-                UserName = user.FirstName + " " + user.LastName
+                UserName = user.FirstName + " " + user.LastName,
+                UserRole = "Customer"
 
             };
 
