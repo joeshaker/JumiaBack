@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,9 +10,10 @@ namespace Jumia_Api.Domain.Models
     public class Chat
     {
         public Guid Id { get; set; }
-        public string UserId { get; set; } = string.Empty;
-        public string UserName { get; set; } = string.Empty;
-        public string UserEmail { get; set; } = string.Empty;
+        [ForeignKey("User")]
+        public string UserId { get; set; } 
+        public string UserName { get; set; } 
+        public string UserEmail { get; set; } 
         public ChatStatus Status { get; set; } = ChatStatus.Active;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ClosedAt { get; set; }
@@ -19,6 +21,7 @@ namespace Jumia_Api.Domain.Models
         public string? AdminName { get; set; }
 
         public virtual ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+        public virtual AppUser User { get; set; } 
     }
     public enum ChatStatus
     {
