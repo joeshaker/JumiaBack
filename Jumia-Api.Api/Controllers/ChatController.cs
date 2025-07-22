@@ -20,11 +20,13 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ChatDto>> CreateChat([FromBody] CreateChatDto createChatDto)
+        public async Task<ActionResult<ChatDto>> CreateChat([FromBody] string initialMessage)
         {
+            var chatDto = GetUserDto();
+            chatDto.InitialMessage = initialMessage;
             try
             {
-                var chat = await _chatService.CreateChatAsync(createChatDto);
+                var chat = await _chatService.CreateChatAsync(chatDto);
                 return Ok(chat);
             }
             catch (Exception ex)
@@ -54,7 +56,7 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpGet("my-chat")]
-        public async Task<ActionResult<ChatDto>> GetMyChat()
+        public async Task<IActionResult> GetMyChat()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
@@ -175,6 +177,21 @@ namespace Jumia_Api.Api.Controllers
 
             await _chatService.MarkMessagesAsReadAsync(chatId, userId);
             return Ok();
+        }
+
+        private CreateChatDto GetUserDto()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userName = User.FindFirst(ClaimTypes.Name)?.Value ?? "Unknown User";
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "Unknown Email";
+            if (userId == null)
+                throw new UnauthorizedAccessException("User not authenticated");
+            return new CreateChatDto
+            {
+                UserId = userId,
+                UserName = userName,
+                UserEmail = userEmail
+            };
         }
     }
 }

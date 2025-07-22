@@ -27,9 +27,10 @@ namespace Jumia_Api.Infrastructure.External_Services
         {
             // Check if user already has an active chat
             var existingChat = await _chatRepository.GetByUserIdAsync(createChatDto.UserId);
-            if (existingChat != null && existingChat.Status == ChatStatus.Active)
+            var existingChatFlag = existingChat?.FirstOrDefault(c => c.Status == ChatStatus.Active);
+            if (existingChat != null && existingChatFlag.Status == ChatStatus.Active)
             {
-                return MapToDto(existingChat);
+                return MapToDto(existingChatFlag);
             }
 
             var chat = new Chat
@@ -74,10 +75,10 @@ namespace Jumia_Api.Infrastructure.External_Services
             return chat != null ? MapToDto(chat) : null;
         }
 
-        public async Task<ChatDto?> GetUserChatAsync(string userId)
+        public async Task<IEnumerable<ChatDto>> GetUserChatAsync(string userId)
         {
             var chat = await _chatRepository.GetByUserIdAsync(userId);
-            return chat != null ? MapToDto(chat) : null;
+            return chat != null ? MapToChatListDto(chat) : null;
         }
 
         public async Task<IEnumerable<ChatDto>> GetAllActiveChatsAsync()
@@ -116,7 +117,7 @@ namespace Jumia_Api.Infrastructure.External_Services
                 await _chatRepository.UpdateAsync(chat);
             }
 
-            var messageDto = MapToDto(savedMessage);
+            var messageDto = MapToMessageDto(savedMessage);
 
             // Send message to chat participants
             await _hubContext.Clients.Group($"Chat_{sendMessageDto.ChatId}")
@@ -128,7 +129,7 @@ namespace Jumia_Api.Infrastructure.External_Services
         public async Task<IEnumerable<ChatMessageDto>> GetChatMessagesAsync(Guid chatId, int page = 1, int pageSize = 50)
         {
             var messages = await _chatRepository.GetChatMessagesAsync(chatId, page, pageSize);
-            return messages.Select(MapToDto);
+            return messages.Select(MapToMessageDto);
         }
 
         public async Task<ChatDto> AssignChatToAdminAsync(Guid chatId, string adminId, string adminName)
@@ -189,12 +190,12 @@ namespace Jumia_Api.Infrastructure.External_Services
                 AdminId = chat.AdminId,
                 AdminName = chat.AdminName,
                 LastMessage = chat.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault() != null
-                    ? MapToDto(chat.Messages.OrderByDescending(m => m.SentAt).First())
+                    ? MapToMessageDto(chat.Messages.OrderByDescending(m => m.SentAt).First())
                     : null
             };
         }
 
-        private static ChatMessageDto MapToDto(ChatMessage message)
+        private static ChatMessageDto MapToMessageDto(ChatMessage message)
         {
             return new ChatMessageDto
             {
@@ -209,5 +210,30 @@ namespace Jumia_Api.Infrastructure.External_Services
                 IsRead = message.IsRead
             };
         }
+
+        private static IEnumerable<ChatDto> MapToChatListDto(IEnumerable<Chat> chat)
+        {
+            var chats = chat.Select(c => new ChatDto
+            {
+                Id = c.Id,
+                UserId = c.UserId,
+                UserName = c.UserName,
+                UserEmail = c.UserEmail,
+                Status = c.Status.ToString(),
+                CreatedAt = c.CreatedAt,
+                ClosedAt = c.ClosedAt,
+                AdminId = c.AdminId,
+                AdminName = c.AdminName,
+                LastMessage = c.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault() != null
+                    ? MapToMessageDto(c.Messages.OrderByDescending(m => m.SentAt).First())
+                    : null
+            }).ToList();
+
+
+            return chats;
+        }
+
+
+
     }
 }
