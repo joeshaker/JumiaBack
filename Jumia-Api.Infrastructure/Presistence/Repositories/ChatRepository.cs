@@ -25,11 +25,11 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<Chat?> GetByUserIdAsync(string userId)
+        public async Task<IEnumerable<Chat>> GetByUserIdAsync(string userId)
         {
             return await _dbSet
                 .Include(c => c.Messages.OrderBy(m => m.SentAt))
-                .FirstOrDefaultAsync(c => c.UserId == userId && c.Status != ChatStatus.Closed);
+                .Where(c=>c.UserId==userId).ToListAsync();
         }
 
         public async Task<IEnumerable<Chat>> GetAllActiveChatsAsync()
