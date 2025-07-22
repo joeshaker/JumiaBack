@@ -50,8 +50,9 @@ namespace Jumia_Api.Application.Services
             int userTypeId=0;
             if (role == "Customer")
             {
-                 var customer = _unitOfWork.CustomerRepo.GetCustomerByUserIdAsync(user.Id);
-                userTypeId = customer.Id;
+                 var customer =await _unitOfWork.CustomerRepo.GetCustomerByUserIdAsync(user.Id);
+              
+                userTypeId = customer.CustomerId;
             } 
                 
             var token = await _jwtService.GenerateJwtTokenAsync(user, role, userTypeId);
@@ -110,11 +111,13 @@ namespace Jumia_Api.Application.Services
             var user = await _userService.FindByEmailAsync(dto.Email);
             if (user == null)
             {
+
                 return new AuthResult
                 {
                     Successed = false,
                     Message = "User not found after creation"
                 };
+
             }
            
             await _userService.AddUserToRoleAsync(user, "Customer");

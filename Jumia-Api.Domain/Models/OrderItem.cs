@@ -32,8 +32,12 @@ namespace Jumia_Api.Domain.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal TotalPrice { get; set; }
 
+        [ForeignKey("ProductVariant")]
+        public int? variationId { get; set; } = 0; 
+
         // Navigation properties
         public SubOrder SubOrder { get; set; }
         public Product Product { get; set; }
+        public ProductVariant ProductVariant { get; set; }
     }
 }

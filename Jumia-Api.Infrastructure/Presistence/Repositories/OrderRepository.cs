@@ -20,7 +20,10 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
         public async Task<IEnumerable<Order>> GetByCustomerIdAsync(int customerId)
         {
             return await _dbSet
-                .Where(o => o.CustomerId == customerId)
+                .Where(o => o.CustomerId == customerId).AsSplitQuery()
+                .Include(o=>o.SubOrders)
+                .ThenInclude(o=>o.OrderItems)
+                .ThenInclude(oi=>oi.Product)
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -28,10 +31,13 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
         public async Task<IEnumerable<Order>> GetWithDetailsAsync(int id)
         {
             return await _dbSet
-                .Where(o => o.OrderId == id)
+                .Where(o => o.OrderId == id).AsSplitQuery()
                 .Include(o => o.Customer)
                 .Include(o => o.Address)
                 .Include(o => o.Coupon)
+                .Include(o => o.SubOrders)
+                .ThenInclude(so => so.OrderItems)
+                .ThenInclude(oi => oi.Product)
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -42,6 +48,9 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 .Include(o => o.Customer)
                 .Include(o => o.Address)
                 .Include(o => o.Coupon)
+                .Include(o => o.SubOrders)
+                .ThenInclude(so => so.OrderItems)
+                .ThenInclude(oi => oi.Product)
                 .AsNoTracking()
                 .ToListAsync();
         }

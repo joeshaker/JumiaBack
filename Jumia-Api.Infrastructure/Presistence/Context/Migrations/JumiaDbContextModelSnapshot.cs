@@ -470,6 +470,102 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("Jumia_Api.Domain.Models.Chat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdminId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AdminName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Chats");
+                });
+
+            modelBuilder.Entity("Jumia_Api.Domain.Models.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsFromAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.HasIndex("SentAt");
+
+                    b.ToTable("ChatMessages");
+                });
+
             modelBuilder.Entity("Jumia_Api.Domain.Models.Coupon", b =>
                 {
                     b.Property<int>("CouponId")
@@ -663,11 +759,16 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(10, 2)");
 
+                    b.Property<int?>("variationId")
+                        .HasColumnType("int");
+
                     b.HasKey("OrderItemId");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("SubOrderId");
+
+                    b.HasIndex("variationId");
 
                     b.ToTable("OrderItems");
                 });
@@ -1440,6 +1541,17 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Navigation("ParentCategory");
                 });
 
+            modelBuilder.Entity("Jumia_Api.Domain.Models.ChatMessage", b =>
+                {
+                    b.HasOne("Jumia_Api.Domain.Models.Chat", "Chat")
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Chat");
+                });
+
             modelBuilder.Entity("Jumia_Api.Domain.Models.Customer", b =>
                 {
                     b.HasOne("Jumia_Api.Domain.Models.AppUser", "User")
@@ -1510,12 +1622,18 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .IsRequired();
 
                     b.HasOne("Jumia_Api.Domain.Models.SubOrder", "SubOrder")
-                        .WithMany()
+                        .WithMany("OrderItems")
                         .HasForeignKey("SubOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Jumia_Api.Domain.Models.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("variationId");
+
                     b.Navigation("Product");
+
+                    b.Navigation("ProductVariant");
 
                     b.Navigation("SubOrder");
                 });
@@ -1635,7 +1753,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
             modelBuilder.Entity("Jumia_Api.Domain.Models.SubOrder", b =>
                 {
                     b.HasOne("Jumia_Api.Domain.Models.Order", "Order")
-                        .WithMany()
+                        .WithMany("SubOrders")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1701,7 +1819,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .IsRequired();
 
                     b.HasOne("Jumia_Api.Domain.Models.Wishlist", "Wishlist")
-                        .WithMany()
+                        .WithMany("WishlistItems")
                         .HasForeignKey("WishlistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1781,9 +1899,19 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Navigation("SubCategories");
                 });
 
+            modelBuilder.Entity("Jumia_Api.Domain.Models.Chat", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("Jumia_Api.Domain.Models.Coupon", b =>
                 {
                     b.Navigation("UserCoupons");
+                });
+
+            modelBuilder.Entity("Jumia_Api.Domain.Models.Order", b =>
+                {
+                    b.Navigation("SubOrders");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Product", b =>
@@ -1803,6 +1931,16 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
             modelBuilder.Entity("Jumia_Api.Domain.Models.ProductVariant", b =>
                 {
                     b.Navigation("Attributes");
+                });
+
+            modelBuilder.Entity("Jumia_Api.Domain.Models.SubOrder", b =>
+                {
+                    b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("Jumia_Api.Domain.Models.Wishlist", b =>
+                {
+                    b.Navigation("WishlistItems");
                 });
 #pragma warning restore 612, 618
         }

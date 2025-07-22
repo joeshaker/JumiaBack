@@ -12,10 +12,12 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
 
         IProductAttributeRepo ProductAttributeRepo { get; }
         IProductRepo ProductRepo { get; }
+
         IAddressRepo AddressRepo { get; }
+
         ICartRepo CartRepo { get; }
         IGenericRepo<T> Repository<T>() where T : class;
-         ICategoryRepo CategoryRepo { get; }
+        ICategoryRepo CategoryRepo { get; }
 
         ICouponRepo CouponRepo { get; }
 
@@ -27,7 +29,10 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
         ICartItemRepo CartItemRepo { get; }
         ICustomerRepo CustomerRepo { get; }
 
-       IOrderRepository OrderRepo { get; }
+        IOrderRepository OrderRepo { get; }
+
+
+        IRatingRepo RatingRepo { get; }
 
         IWishlistRepo WishlistRepo { get; }
         IWishlistItemRepo WishlistItemRepo { get; }

@@ -19,6 +19,7 @@ using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Infrastructure.Presistence.UnitOfWork;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Jumia_Api.Infrastructure.Hubs;
 
 
 namespace Jumia_Api.Api
@@ -62,7 +63,7 @@ namespace Jumia_Api.Api
                     ValidAudience = jwtConfig["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig["Key"]!)),
                 };
-                
+
             });
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                .AddCookie(options =>
@@ -124,18 +125,30 @@ namespace Jumia_Api.Api
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-       
-           
+
+
             // Swagger/OpenAPI configuration
             builder.Services.AddEndpointsApiExplorer();
-        
+
+            
            
-          
+
+
+            //builder.Services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("v1", new OpenApiInfo
+            //    {
+            //        Title = "Jumia API",
+            //        Version = "v1",
+            //        Description = "API for Jumia Application",
+            //    });
+ 
+
 
 
             var app = builder.Build();
             app.UseCors("AllowAngularDev");
-
+            app.UseStaticFiles();
             //Enable Swagger middleware
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -158,6 +171,8 @@ namespace Jumia_Api.Api
 
 
             app.MapControllers();
+            app.MapHub<ChatHub>("/chathub");
+
 
             app.Run();
         }
