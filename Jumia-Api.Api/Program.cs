@@ -19,6 +19,7 @@ using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Infrastructure.Presistence.UnitOfWork;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Jumia_Api.Infrastructure.Hubs;
 
 
 namespace Jumia_Api.Api
@@ -170,6 +171,8 @@ namespace Jumia_Api.Api
 
 
             app.MapControllers();
+            app.MapHub<ChatHub>("/chathub");
+
 
             app.Run();
         }
