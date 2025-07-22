@@ -9,7 +9,7 @@ namespace Jumia_Api.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
@@ -68,7 +68,7 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpGet("active")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<ChatDto>>> GetActiveChats()
         {
             var chats = await _chatService.GetAllActiveChatsAsync();
