@@ -5,6 +5,7 @@ using Jumia_Api.Application.Services;
 
 using Jumia_Api.Domain.Interfaces.Repositories;
 using Jumia_Api.Domain.Interfaces.UnitOfWork;
+using Jumia_Api.Infrastructure.External_Services;
 using Jumia_Api.Infrastructure.Presistence.Context;
 using Jumia_Api.Infrastructure.Presistence.Repositories;
 using Jumia_Api.Infrastructure.Presistence.UnitOfWork;
@@ -23,6 +24,9 @@ namespace Jumia_Api.Api.DependencyInjection.Application
             services.AddScoped<ICouponService, CouponService>();
 
             services.AddScoped<IOrderService, OrderService>();
+
+            //services.AddScoped<IChatRepository, ChatRepository>();
+            services.AddScoped<IChatService, ChatService>();
             // Scan all assemblies
             services.AddAutoMapper(cfg => { },typeof(ProductsMapping).Assembly);
             services.AddAutoMapper(cfg => { }, typeof(UserMapping).Assembly);
