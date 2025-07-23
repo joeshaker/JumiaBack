@@ -72,7 +72,7 @@ namespace Jumia_Api.Api.Controllers
 
 
         [HttpPost("create")]
-        [Consumes("multipart/form-data")]
+        
         public async Task<IActionResult> CreateProduct([FromForm] AddProductDto product)
         { //Done only return type checks
             if (!ModelState.IsValid)

@@ -16,7 +16,7 @@ namespace Jumia_Api.Application.Dtos.ProductDtos.Post
         public decimal? DiscountPercentage { get; set; }
         public int StockQuantity { get; set; }
         public string SKU { get; set; } = "";
-        [SwaggerSchema("product variant image")]
+       
         public IFormFile VariantImageUrl { get; set; } 
         public bool IsDefault { get; set; }
         public bool IsAvailable { get; set; }
