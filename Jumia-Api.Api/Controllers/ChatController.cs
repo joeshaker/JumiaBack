@@ -7,23 +7,30 @@ using System.Security.Claims;
 
 namespace Jumia_Api.Api.Controllers
 {
+    public class init
+    {
+        public string InitialMessage { get; set; } = "";
+    }
+
+
+
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+   
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
-
+       
         public ChatController(IChatService chatService)
         {
             _chatService = chatService;
         }
 
         [HttpPost]
-        public async Task<ActionResult<ChatDto>> CreateChat([FromBody] string initialMessage)
+        public async Task<ActionResult<ChatDto>> CreateChat([FromBody] init init )
         {
             var chatDto = GetUserDto();
-            chatDto.InitialMessage = initialMessage;
+            chatDto.InitialMessage = init.InitialMessage;
             try
             {
                 var chat = await _chatService.CreateChatAsync(chatDto);
