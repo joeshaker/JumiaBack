@@ -24,7 +24,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         private ICustomerRepo? _customerRepo;
         private IWishlistItemRepo? _wishlistItemRepo;
         private IWishlistRepo? _wishlistRepo;
-
+        private ISellerRepo? _sellerRepo;   
 
         private IRatingRepo? _ratingRepo;
 
@@ -68,8 +68,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         public IWishlistItemRepo WishlistItemRepo => _wishlistItemRepo ?? new WishlistItemRepo(_context);
         public IWishlistRepo WishlistRepo => _wishlistRepo ?? new WishlistRepo(_context);
 
-
-
+        public ISellerRepo SellerRepo => _sellerRepo ?? new SellerRepo(_context);
 
         public void Dispose()
         {

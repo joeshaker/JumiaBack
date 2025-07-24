@@ -7,24 +7,33 @@ using System.Security.Claims;
 
 namespace Jumia_Api.Api.Controllers
 {
+    public class init
+    {
+        public string InitialMessage { get; set; } = "";
+    }
+
+
+
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+   
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
-
+       
         public ChatController(IChatService chatService)
         {
             _chatService = chatService;
         }
 
         [HttpPost]
-        public async Task<ActionResult<ChatDto>> CreateChat([FromBody] CreateChatDto createChatDto)
+        public async Task<ActionResult<ChatDto>> CreateChat([FromBody] init init )
         {
+            var chatDto = GetUserDto();
+            chatDto.InitialMessage = init.InitialMessage;
             try
             {
-                var chat = await _chatService.CreateChatAsync(createChatDto);
+                var chat = await _chatService.CreateChatAsync(chatDto);
                 return Ok(chat);
             }
             catch (Exception ex)
@@ -54,7 +63,7 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpGet("my-chat")]
-        public async Task<ActionResult<ChatDto>> GetMyChat()
+        public async Task<IActionResult> GetMyChat()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
@@ -175,6 +184,21 @@ namespace Jumia_Api.Api.Controllers
 
             await _chatService.MarkMessagesAsReadAsync(chatId, userId);
             return Ok();
+        }
+
+        private CreateChatDto GetUserDto()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userName = User.FindFirst(ClaimTypes.Name)?.Value ?? "Unknown User";
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "Unknown Email";
+            if (userId == null)
+                throw new UnauthorizedAccessException("User not authenticated");
+            return new CreateChatDto
+            {
+                UserId = userId,
+                UserName = userName,
+                UserEmail = userEmail
+            };
         }
     }
 }

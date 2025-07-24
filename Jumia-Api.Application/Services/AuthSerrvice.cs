@@ -55,6 +55,11 @@ namespace Jumia_Api.Application.Services
                 userTypeId = customer.CustomerId;
             } 
                 
+            if(role == "Seller")
+            {
+                var seller = await _unitOfWork.SellerRepo.GetSellerByUserID(user.Id);
+                userTypeId = seller.SellerId;
+            }
             var token = await _jwtService.GenerateJwtTokenAsync(user, role, userTypeId);
              return new AuthResult
             {
@@ -64,7 +69,9 @@ namespace Jumia_Api.Application.Services
                 UserId = user.Id,
                 Email = user.Email,
                 UserName = user.FirstName + " " + user.LastName,
-                UserRole = role
+                UserRole = role,
+                UserTypeId=userTypeId
+               
                 
             };
 
@@ -171,5 +178,7 @@ namespace Jumia_Api.Application.Services
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             return (false, $"Failed to create role: {errors}");
         }
+
+       
     }
 }
