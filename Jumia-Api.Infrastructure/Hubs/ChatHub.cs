@@ -43,7 +43,7 @@ namespace Jumia_Api.Infrastructure.Hubs
                     var userChat = await _chatService.GetUserChatAsync(userId);
                     if (userChat != null)
                     {
-                        await Groups.AddToGroupAsync(Context.ConnectionId, $"Chat_{userChat.Id}");
+                        await Groups.AddToGroupAsync(Context.ConnectionId, $"Chat_{userChat}");
                     }
                 }
             }
