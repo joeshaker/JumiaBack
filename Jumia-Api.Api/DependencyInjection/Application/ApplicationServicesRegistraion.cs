@@ -58,6 +58,7 @@ namespace Jumia_Api.Api.DependencyInjection.Application
             
 
             services.AddScoped<IWishlistService, WishlistService>();
+            services.AddScoped<ISellerService,SellerService>();
 
 
 

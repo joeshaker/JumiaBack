@@ -10,7 +10,7 @@ namespace Jumia_Api.Domain.Interfaces.Repositories
     public interface IChatRepository
     {
         Task<Chat?> GetByIdAsync(Guid id);
-        Task<Chat?> GetByUserIdAsync(string userId);
+        Task<IEnumerable<Chat>> GetByUserIdAsync(string userId);
         Task<IEnumerable<Chat>> GetAllActiveChatsAsync();
         Task<IEnumerable<Chat>> GetChatsByAdminIdAsync(string adminId);
         Task<Chat> CreateAsync(Chat chat);

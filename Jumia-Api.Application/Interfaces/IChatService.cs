@@ -11,7 +11,7 @@ namespace Jumia_Api.Application.Interfaces
     {
         Task<ChatDto> CreateChatAsync(CreateChatDto createChatDto);
         Task<ChatDto?> GetChatAsync(Guid chatId);
-        Task<ChatDto?> GetUserChatAsync(string userId);
+        Task<IEnumerable<ChatDto>> GetUserChatAsync(string userId);
         Task<IEnumerable<ChatDto>> GetAllActiveChatsAsync();
         Task<IEnumerable<ChatDto>> GetAdminChatsAsync(string adminId);
         Task<ChatMessageDto> SendMessageAsync(SendMessageDto sendMessageDto, string senderId, string senderName, bool isFromAdmin);

@@ -68,7 +68,8 @@ namespace Jumia_Api.Api.Controllers
                 result.UserId,
                 result.Email,
                 result.UserName,
-                result.UserRole
+                result.UserRole,
+                result.UserTypeId
                 
             };
 
@@ -103,7 +104,8 @@ namespace Jumia_Api.Api.Controllers
                 result.UserId,
                 result.Email,
                 result.UserName,
-                result.UserRole
+                result.UserRole,
+               result.UserTypeId
             };
 
             var userInfoJson = JsonSerializer.Serialize(userInfo);
