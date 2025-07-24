@@ -78,7 +78,6 @@ namespace Jumia_Api.Api.Controllers
             return NoContent();
         }
 
-        //get order for current customer
         [HttpGet("current-customer")]
         public async Task<ActionResult<IEnumerable<OrderDTO>>> GetCurrentCustomerOrders()
         {
@@ -88,6 +87,22 @@ namespace Jumia_Api.Api.Controllers
             if (orders == null || !orders.Any())
                 return NotFound("No orders found for the current customer.");
             return Ok(orders);
+        }
+        [HttpGet("suborders/{orderId}")]
+        public async Task<ActionResult<IEnumerable<SubOrderDTO>>> GetSubOrdersByOrderId(int orderId)
+        {
+            var subOrders = await _orderService.GetSubOrdersByOrderIdAsync(orderId);
+            if (subOrders == null || !subOrders.Any())
+                return NotFound("No suborders found for the specified order.");
+            return Ok(subOrders);
+        }
+        [HttpGet("suborders/seller/{sellerId}")]
+        public async Task<ActionResult<IEnumerable<SubOrderDTO>>> GetSubOrdersBySellerId(int sellerId)
+        {
+            var subOrders = await _orderService.GetSubOrdersBySellerIdAsync(sellerId);
+            if (subOrders == null || !subOrders.Any())
+                return NotFound("No suborders found for the specified seller.");
+            return Ok(subOrders);
         }
         private int GetCustomerId()
         {
