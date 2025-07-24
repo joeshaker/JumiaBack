@@ -22,6 +22,7 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
         ICouponRepo CouponRepo { get; }
 
         IUserCouponRepo UserCouponRepo { get; }
+        IsuborderRepo SubOrderRepo { get; }
 
 
 
