@@ -94,7 +94,7 @@ namespace Jumia_Api.Api.Controllers
                 return BadRequest(ModelState);
             }
             var products = await _productService.GetProductsByCategoriesAsync(role,productFilterRequestDto,pageNumber,pageSize);
-            if (products == null || !products.Items.Any())
+            if (products == null ||products.Items ==null ||!products.Items.Any())
             {
                 return NotFound(new { message = "No products found matching the criteria" });
             }
