@@ -4,8 +4,6 @@ using Jumia_Api.Application.Services;
 using Jumia_Api.Domain.Models;
 
 using Jumia_Api.Domain.Interfaces.Repositories;
-using Jumia_Api.Domain.Models;
-using Jumia_Api.Infrastructure.External_Services;
 
 using Jumia_Api.Infrastructure.Presistence.Context;
 using Jumia_Api.Infrastructure.Presistence.Repositories;
