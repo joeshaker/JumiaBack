@@ -1,4 +1,5 @@
 ﻿using Jumia_Api.Application.Interfaces;
+using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Jumia_Api.Infrastructure.Hubs
 {
-    [Authorize]
+  
     public class ChatHub : Hub
     {
         private readonly IChatService _chatService;
@@ -43,7 +44,11 @@ namespace Jumia_Api.Infrastructure.Hubs
                     var userChat = await _chatService.GetUserChatAsync(userId);
                     if (userChat != null)
                     {
-                        await Groups.AddToGroupAsync(Context.ConnectionId, $"Chat_{userChat}");
+
+
+                        
+                        await Groups.AddToGroupAsync(Context.ConnectionId, $"Chat_{userChat.FirstOrDefault(c => c.Status == ChatStatus.Active.ToString()).UserId}");
+
                     }
                 }
             }
