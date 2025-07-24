@@ -260,6 +260,7 @@ namespace Jumia_Api.Application.Services
 
             if (request.Variants != null || request.Variants.Any())
             {
+                product.ProductVariants = new List<ProductVariant>(); ;
 
 
                     foreach (var variantDto in request.Variants)

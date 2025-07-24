@@ -28,7 +28,7 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
 
         ICartItemRepo CartItemRepo { get; }
         ICustomerRepo CustomerRepo { get; }
-
+        ISellerRepo SellerRepo { get; }
         IOrderRepository OrderRepo { get; }
 
 

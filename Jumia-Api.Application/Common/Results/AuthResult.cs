@@ -13,7 +13,7 @@
 
         public string? UserRole { get; set; }
 
-
+        public int? UserTypeId { get; set; }
 
         public string? User { get; set; }
 

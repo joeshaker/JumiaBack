@@ -48,7 +48,7 @@ namespace Jumia_Api.Domain.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
-        public int StockQuantity { get; set; } = 0;
+        public int StockQuantity { get; set; } 
 
         [Required]
         [MaxLength(255)]
