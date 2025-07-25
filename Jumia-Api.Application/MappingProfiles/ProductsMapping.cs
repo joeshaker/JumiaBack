@@ -58,6 +58,8 @@ namespace Jumia_Api.Application.MappingProfiles
 
             CreateMap<Product, ProductDetailsDto>()
                 .ForMember(dest=>dest.MainImageUrl,opt=>opt.MapFrom(src=>src.MainImageUrl))
+                .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Seller.BusinessName))
+                .ForMember(dest => dest.BusinessDescription, opt => opt.MapFrom(src => src.Seller.BusinessDescription)) 
                 .ForMember(dest=>dest.DiscountPercentage, opt =>
                     opt.MapFrom(src => $"{src.ProductVariants.Min(v => v.DiscountPercentage)}% - {src.ProductVariants.Max(v => v.DiscountPercentage)}%")) 
                 .ForMember(dest => dest.AdditionalImageUrls, opt =>
