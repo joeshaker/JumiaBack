@@ -14,6 +14,7 @@ namespace Jumia_Api.Application.Interfaces
             bool IsValidImage(IFormFile file);
             bool IsValidDocument(IFormFile file);
             bool IsValidVoice(IFormFile file);
-       }
+            void DeleteFile(string filePath);
+    }
     
 }
