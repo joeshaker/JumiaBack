@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Jumia_Api.Domain.Interfaces.Repositories
 {
-    public interface IVariantAttributeRepo:IGenericRepo<VariantAttribute>
+    public interface IProductAttributeValueRepo:IGenericRepo<ProductAttributeValue>
     {
     }
 }
