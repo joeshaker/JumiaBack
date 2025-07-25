@@ -25,13 +25,13 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
 
 
 
-
+        IProductAttributeValueRepo ProductAttributeValueRepo { get; }
         ICartItemRepo CartItemRepo { get; }
         ICustomerRepo CustomerRepo { get; }
         ISellerRepo SellerRepo { get; }
         IOrderRepository OrderRepo { get; }
-
-
+        IVariantAttributeRepo VariantAttributeRepo { get; }
+        IVariantRepo VariantRepo { get; }
         IRatingRepo RatingRepo { get; }
 
         IWishlistRepo WishlistRepo { get; }
