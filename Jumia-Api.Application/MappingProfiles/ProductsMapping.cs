@@ -32,6 +32,30 @@ namespace Jumia_Api.Application.MappingProfiles
     .ForMember(dest => dest.VariantImageUrl, opt => opt.Ignore()) 
     .ForMember(dest => dest.VariantId, opt => opt.Ignore());
 
+
+
+
+
+            CreateMap<UpdateProductDto, Product>()
+      .ForMember(dest => dest.ProductImages, opt => opt.Ignore())
+      .ForMember(dest => dest.productAttributeValues,
+          opt => opt.MapFrom(src =>
+              src.Attributes.SelectMany(a => a.Values.Select(v =>
+                  new ProductAttributeValue
+                  {
+                      AttributeId = a.AttributeId,
+                      Value = v
+                  }))))
+      .ForMember(dest => dest.ProductVariants,
+          opt => opt.MapFrom(src => src.Variants))
+      .ForMember(dest => dest.MainImageUrl, opt => opt.Ignore())
+      .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+      .ForMember(dest => dest.Seller, opt => opt.Ignore())
+      .ForMember(dest => dest.Category, opt => opt.Ignore());
+            CreateMap<AddProductVariantDto, ProductVariant>()
+    .ForMember(dest => dest.VariantImageUrl, opt => opt.Ignore())
+    .ForMember(dest => dest.VariantId, opt => opt.Ignore());
+
             CreateMap<Product, ProductDetailsDto>()
                 .ForMember(dest=>dest.MainImageUrl,opt=>opt.MapFrom(src=>src.MainImageUrl))
                 .ForMember(dest=>dest.DiscountPercentage, opt =>
