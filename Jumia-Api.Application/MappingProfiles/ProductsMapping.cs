@@ -31,11 +31,8 @@ namespace Jumia_Api.Application.MappingProfiles
             CreateMap<AddProductVariantDto, ProductVariant>()
     .ForMember(dest => dest.VariantImageUrl, opt => opt.Ignore()) 
     .ForMember(dest => dest.VariantId, opt => opt.Ignore());
-
-
-
-
-
+            
+            
             CreateMap<UpdateProductDto, Product>()
       .ForMember(dest => dest.ProductImages, opt => opt.Ignore())
       .ForMember(dest => dest.productAttributeValues,
