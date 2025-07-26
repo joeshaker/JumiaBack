@@ -69,9 +69,18 @@ namespace Jumia_Api.Infrastructure.Presistence.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<SubOrder>()
+                .HasOne(s => s.Order)
+                .WithMany(o => o.SubOrders)
+                .HasForeignKey(s => s.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Chat configuration
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.SubOrder)
+                .WithMany(s => s.OrderItems)
+                .HasForeignKey(oi => oi.SubOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Chat>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -104,6 +113,8 @@ namespace Jumia_Api.Infrastructure.Presistence.Context
                 entity.HasIndex(e => e.ChatId);
                 entity.HasIndex(e => e.SentAt);
             });
+            // Chat configuration
+            base.OnModelCreating(modelBuilder);
         }
     }
 }
