@@ -14,7 +14,9 @@ namespace Jumia_Api.Application.Interfaces
 
         public Task<(bool Success, string Message)> CreateRoleAsync(string roleName);
 
+        public Task<AuthResult> ForgetPasswordAsync(string email);
 
+        public Task<AuthResult> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
 
     }
 }

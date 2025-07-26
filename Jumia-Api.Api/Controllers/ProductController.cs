@@ -148,21 +148,35 @@ namespace Jumia_Api.Api.Controllers
             return Ok(options);
         }
 
-
-
-
-/*
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductDto product)
+        [HttpDelete("delete/{id:int}")]
+        public async Task<IActionResult> DeleteProduct(int id)
         {
-            if (!ModelState.IsValid)
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
             {
-                return BadRequest(ModelState);
+                return NotFound(new { message = "Product not found" });
             }
+            var result = await _productService.DeleteProductAsync(id);
+            if (result)
+            {
+                return Ok(new { message = "Product deleted successfully" });
+            }
+            return BadRequest(new { message = "Error deleting the product" });
+        }
 
-            await _productService.UpdateProductAsync(product);
-            return Ok();
-        }*/
+
+        /*
+                [HttpPut("update")]
+                public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductDto product)
+                {
+                    if (!ModelState.IsValid)
+                    {
+                        return BadRequest(ModelState);
+                    }
+
+                    await _productService.UpdateProductAsync(product);
+                    return Ok();
+                }*/
 
     }
 }
