@@ -32,6 +32,42 @@ namespace Jumia_Api.Application.Services
             _fileService = fileService;
         }
 
+        public async Task<IEnumerable<SellerInfo>> GetAll()
+        {
+            var Sellers = await _unitOfWork.SellerRepo.GetAllAsync();
+
+            var sellerInfos = Sellers.Select(s => new SellerInfo
+            {
+                SellerId = s.SellerId,
+                UserId = s.UserId,
+                BusinessName = s.BusinessName,
+                ImageUrl = s.ImageUrl,
+                BusinessDescription = s.BusinessDescription,
+                BusinessLogo = s.BusinessLogo,
+                IsVerified = s.IsVerified,
+                VerifiedAt = s.VerifiedAt,
+                Rating = s.Rating
+            });
+
+            return sellerInfos;
+        }
+
+        public async Task<bool> IsVerified(int sellerId)
+        {
+           var seller =await _unitOfWork.SellerRepo.GetByIdAsync(sellerId);
+            if (seller == null)
+            {
+                return false; // Seller not found
+            }
+
+            seller.IsVerified = !seller.IsVerified; // Assuming you want to mark the seller as verified
+            seller.VerifiedAt = DateTime.UtcNow; // Set the verification date
+            await _unitOfWork.SaveChangesAsync();
+            return true; // Verification successful
+
+        }
+
+
         public async Task<AuthResult> RegisterAsync(CreateSellerDto dto)
         {
             if (dto.ConfirmPassword != dto.Password)

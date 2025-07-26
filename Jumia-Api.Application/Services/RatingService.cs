@@ -66,10 +66,11 @@ namespace Jumia_Api.Application.Services
             var ratings = await _unitOfWork.RatingRepo.GetAllAsync();
             var ratingDtos = new List<RatingInfoDto>();
 
+
             foreach (var rating in ratings)
             {
                 string customerName = "Unknown";
-
+                var productname = await _unitOfWork.ProductRepo.GetByIdAsync(rating.ProductId);
                 var customer = await _unitOfWork.CustomerRepo.GetByIdAsync(rating.CustomerId);
                 if (customer != null)
                 {
@@ -85,7 +86,7 @@ namespace Jumia_Api.Application.Services
                     RatingId = rating.RatingId,
                     CustomerId = rating.CustomerId,
                     CustomerName = customerName,
-                    ProductId = rating.ProductId,
+                    ProductName=productname.Name,
                     Stars = rating.Stars,
                     Comment = rating.Comment,
                     CreatedAt = rating.CreatedAt,
@@ -105,6 +106,7 @@ namespace Jumia_Api.Application.Services
                 return null;
 
             var customer = await _unitOfWork.CustomerRepo.GetByIdAsync(rating.CustomerId);
+            var product= await _unitOfWork.ProductRepo.GetByIdAsync(rating.ProductId);
 
             // Try to load the User manually if it's not loaded automatically
             var user = customer != null
@@ -119,7 +121,7 @@ namespace Jumia_Api.Application.Services
                 CustomerName = user != null
                     ? $"{user.FirstName} {user.LastName}"
                     : "Unknown",
-                ProductId = rating.ProductId,
+                ProductName = product.Name,
                 Stars = rating.Stars,
                 Comment = rating.Comment,
                 CreatedAt = rating.CreatedAt,
@@ -138,6 +140,7 @@ namespace Jumia_Api.Application.Services
             foreach (var rating in filteredRatings)
             {
                 string customerName = "Unknown";
+                var productname = await _unitOfWork.ProductRepo.GetByIdAsync(rating.ProductId);
 
                 var customer = await _unitOfWork.CustomerRepo.GetByIdAsync(rating.CustomerId);
                 if (customer != null)
@@ -154,7 +157,7 @@ namespace Jumia_Api.Application.Services
                     RatingId = rating.RatingId,
                     CustomerId = rating.CustomerId,
                     CustomerName = customerName,
-                    ProductId = rating.ProductId,
+                    ProductName = productname.Name,
                     Stars = rating.Stars,
                     Comment = rating.Comment,
                     CreatedAt = rating.CreatedAt,
