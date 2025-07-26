@@ -1,13 +1,20 @@
-﻿using System;
+
+
+
+﻿using Jumia_Api.Domain.Models;
+using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Jumia_Api.Domain.Models;
+
 
 namespace Jumia_Api.Domain.Interfaces.Repositories
 {
-    public interface ISellerRepo:IGenericRepo<Seller>
+    public interface ISellerRepo :IGenericRepo<Seller>
     {
+        public Task<Seller> GetSellerByUserID(string userId);
+
     }
 }

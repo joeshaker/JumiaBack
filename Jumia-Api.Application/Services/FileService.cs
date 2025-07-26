@@ -39,5 +39,41 @@ namespace Jumia_Api.Application.Services
 
             return $"/uploads/{folder}/{uniqueFileName}";
         }
+
+        public void DeleteFile(string fileUrl)
+        {
+            if (string.IsNullOrEmpty(fileUrl))
+            {
+                return; // Nothing to delete
+            }
+
+            // The URL path starts with /uploads/. We need to convert it to a physical path.
+            // Example: /uploads/products/some-image.jpg -> wwwroot/uploads/products/some-image.jpg
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", fileUrl.TrimStart('/'));
+
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    File.Delete(filePath);
+                }
+                catch (IOException ex)
+                {
+                    // Log the error: File might be in use, or permissions issue
+                    Console.WriteLine($"Error deleting file {filePath}: {ex.Message}");
+                    // You might want to re-throw or handle differently based on your error policy
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    // Log the error: Permissions issue
+                    Console.WriteLine($"Permissions error deleting file {filePath}: {ex.Message}");
+                }
+            }
+            else
+            {
+                // Optionally log if the file doesn't exist, though it's often not an error
+                // Console.WriteLine($"Attempted to delete file that does not exist: {filePath}");
+            }
+        }
     }
 }

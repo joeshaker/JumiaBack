@@ -1,12 +1,14 @@
+
 ﻿using System;
+﻿using Jumia_Api.Domain.Interfaces.Repositories;
+using Jumia_Api.Domain.Models;
+using Jumia_Api.Infrastructure.Presistence.Context;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Jumia_Api.Domain.Interfaces.Repositories;
-using Jumia_Api.Domain.Models;
-using Jumia_Api.Infrastructure.Presistence.Context;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace Jumia_Api.Infrastructure.Presistence.Repositories
 {
@@ -40,6 +42,11 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
         public void Update(Seller entity)
         {
             throw new NotImplementedException();
+            }
+            
+                    public async Task<Seller> GetSellerByUserID(string userId)
+        {
+            return await _dbSet.Where(s=>s.UserId ==userId).FirstOrDefaultAsync();
+
         }
-    }
 }

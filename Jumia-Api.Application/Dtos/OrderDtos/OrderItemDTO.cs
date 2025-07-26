@@ -8,18 +8,14 @@ namespace Jumia_Api.Application.Dtos.OrderDtos
 {
     public class OrderItemDTO
     {
-        public int Id { get; set; }
+        public int OrderItemId { get; set; }
         public int SubOrderId { get; set; }
         public int ProductId { get; set; }
-        public int VariationId { get; set; } = 0; 
+        public int? VariationId { get; set; }
         public int Quantity { get; set; }
+        public string ProductName { get; set; } 
         public decimal PriceAtPurchase { get; set; }
         public decimal TotalPrice { get; set; }
-        public string ProductName { get; set; }
-        public string ProductImageUrl { get; set; }
-        public string ProductSlug { get; set; }
-        public string ProductBrand { get; set; }
-        public string ProductCategory { get; set; }
 
     }
 }

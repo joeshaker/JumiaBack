@@ -64,6 +64,19 @@ namespace Jumia_Api.Api
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig["Key"]!)),
                 };
 
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var token = context.Request.Cookies["JumiaAuthCookie"];
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            context.Token = token;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+
             });
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                .AddCookie(options =>
@@ -71,7 +84,7 @@ namespace Jumia_Api.Api
                    options.Cookie.HttpOnly = true;
                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                    options.Cookie.SameSite = SameSiteMode.Strict;
-                   options.Cookie.Name = "JumiaAuthCookie";
+                   options.Cookie.Name = "JumiaAuthCookie"; 
                    options.Cookie.MaxAge = TimeSpan.FromMinutes(int.Parse(jwtConfig["DurationInMinutes"]!));
                });
             builder.Services.Configure<JwtSettings>(jwtConfig);

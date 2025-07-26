@@ -32,12 +32,12 @@ namespace Jumia_Api.Domain.Models
         public DateTime StatusUpdatedAt { get; set; } = DateTime.UtcNow;
 
         [MaxLength(100)]
-        public string TrackingNumber { get; set; }
+        public string? TrackingNumber { get; set; }
 
         [MaxLength(100)]
-        public string ShippingProvider { get; set; }
+        public string? ShippingProvider { get; set; }
 
-        public string ReturnReason { get; set; }
+        public string? ReturnReason { get; set; }
 
         public DateTime? ReturnRequestedAt { get; set; }
 

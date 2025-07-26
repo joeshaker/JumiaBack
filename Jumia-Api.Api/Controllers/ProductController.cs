@@ -94,7 +94,7 @@ namespace Jumia_Api.Api.Controllers
                 return BadRequest(ModelState);
             }
             var products = await _productService.GetProductsByCategoriesAsync(role,productFilterRequestDto,pageNumber,pageSize);
-            if (products == null || !products.Items.Any())
+            if (products == null ||products.Items ==null ||!products.Items.Any())
             {
                 return NotFound(new { message = "No products found matching the criteria" });
             }
@@ -151,9 +151,9 @@ namespace Jumia_Api.Api.Controllers
 
 
 
-/*
+
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductDto product)
+        public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductDto product)
         {
             if (!ModelState.IsValid)
             {
@@ -162,7 +162,7 @@ namespace Jumia_Api.Api.Controllers
 
             await _productService.UpdateProductAsync(product);
             return Ok();
-        }*/
+        }
 
     }
 }

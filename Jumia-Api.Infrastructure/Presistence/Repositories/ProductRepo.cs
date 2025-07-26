@@ -46,10 +46,10 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 foreach (var filter in attributeFilters)
                 {
                     string attributeName = filter.Key;
-                    string attributeValue = filter.Value;
+                    List<string> attributeValues = filter.Value.Split(',').ToList();
 
                     query = query.Where(p => p.productAttributeValues
-                        .Any(av => av.ProductAttribute.Name == attributeName && av.Value == attributeValue));
+                        .Any(av => av.ProductAttribute.Name == attributeName && attributeValues.Contains(av.Value)));
                 }
 
             }
@@ -127,6 +127,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
             {
                 product.IsAvailable = true;
                 product.UpdatedAt = DateTime.UtcNow;
+               
             }
         }
         
@@ -137,6 +138,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
             {
                 product.IsAvailable = false;
                 product.UpdatedAt = DateTime.UtcNow;
+               
             }
         }
 
