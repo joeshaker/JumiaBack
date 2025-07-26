@@ -127,7 +127,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
             {
                 product.IsAvailable = true;
                 product.UpdatedAt = DateTime.UtcNow;
-                product.ApprovalStatus = "Active";
+               
             }
         }
         
@@ -138,7 +138,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
             {
                 product.IsAvailable = false;
                 product.UpdatedAt = DateTime.UtcNow;
-                product.ApprovalStatus = "Deleted";
+               
             }
         }
 
