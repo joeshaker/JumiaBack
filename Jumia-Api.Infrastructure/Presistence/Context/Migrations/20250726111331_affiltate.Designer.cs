@@ -4,6 +4,7 @@ using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jumia_Api.Infrastructure.Context.Migrations
 {
     [DbContext(typeof(JumiaDbContext))]
-    partial class JumiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250726111331_affiltate")]
+    partial class affiltate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,7 +79,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Addresses", (string)null);
+                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Admin", b =>
@@ -104,7 +107,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Admins", (string)null);
+                    b.ToTable("Admins");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Affiliate", b =>
@@ -146,7 +149,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Affiliates", (string)null);
+                    b.ToTable("Affiliates");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.AffiliateCommission", b =>
@@ -212,7 +215,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("SubOrderId");
 
-                    b.ToTable("AffiliateCommissions", (string)null);
+                    b.ToTable("AffiliateCommissions");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.AffiliateSellerRelationship", b =>
@@ -249,7 +252,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("SellerId");
 
-                    b.ToTable("AffiliateSellerRelationships", (string)null);
+                    b.ToTable("AffiliateSellerRelationships");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.AffiliateWithdrawal", b =>
@@ -294,7 +297,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("AffiliateId");
 
-                    b.ToTable("AffiliateWithdrawals", (string)null);
+                    b.ToTable("AffiliateWithdrawals");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.AppUser", b =>
@@ -402,7 +405,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Carts", (string)null);
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.CartItem", b =>
@@ -436,7 +439,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("VariationId");
 
-                    b.ToTable("CartItems", (string)null);
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Category", b =>
@@ -467,7 +470,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Chat", b =>
@@ -517,7 +520,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Chats", (string)null);
+                    b.ToTable("Chats");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.ChatMessage", b =>
@@ -565,7 +568,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("SentAt");
 
-                    b.ToTable("ChatMessages", (string)null);
+                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Coupon", b =>
@@ -613,7 +616,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasKey("CouponId");
 
-                    b.ToTable("Coupons", (string)null);
+                    b.ToTable("Coupons");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Customer", b =>
@@ -635,7 +638,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Customers", (string)null);
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.HelpfulRating", b =>
@@ -661,7 +664,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("RatingId");
 
-                    b.ToTable("HelpfulRatings", (string)null);
+                    b.ToTable("HelpfulRatings");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Order", b =>
@@ -733,7 +736,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.OrderItem", b =>
@@ -770,7 +773,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("variationId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Product", b =>
@@ -833,7 +836,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("SellerId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.ProductAttribute", b =>
@@ -871,7 +874,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("ProductAttributes", (string)null);
+                    b.ToTable("ProductAttributes");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.ProductAttributeValue", b =>
@@ -898,7 +901,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductAttributeValues", (string)null);
+                    b.ToTable("ProductAttributeValues");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.ProductImage", b =>
@@ -924,7 +927,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages", (string)null);
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.ProductVariant", b =>
@@ -972,7 +975,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductVariants", (string)null);
+                    b.ToTable("ProductVariants");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Rating", b =>
@@ -1011,7 +1014,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Ratings", (string)null);
+                    b.ToTable("Ratings");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.ReviewImage", b =>
@@ -1034,7 +1037,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("RatingId");
 
-                    b.ToTable("ReviewImages", (string)null);
+                    b.ToTable("ReviewImages");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Seller", b =>
@@ -1080,7 +1083,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Sellers", (string)null);
+                    b.ToTable("Sellers");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.SubOrder", b =>
@@ -1104,6 +1107,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ReturnReason")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ReturnReceivedAt")
@@ -1116,6 +1120,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ShippingProvider")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -1131,6 +1136,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .HasColumnType("decimal(10, 2)");
 
                     b.Property<string>("TrackingNumber")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -1140,7 +1146,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("SellerId");
 
-                    b.ToTable("SubOrders", (string)null);
+                    b.ToTable("SubOrders");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.UserCoupon", b =>
@@ -1172,7 +1178,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("UserCoupons", (string)null);
+                    b.ToTable("UserCoupons");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.VariantAttribute", b =>
@@ -1200,7 +1206,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("VariantId");
 
-                    b.ToTable("VariantAttributes", (string)null);
+                    b.ToTable("VariantAttributes");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Wishlist", b =>
@@ -1221,7 +1227,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Wishlists", (string)null);
+                    b.ToTable("Wishlists");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.WishlistItem", b =>
@@ -1247,7 +1253,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.HasIndex("WishlistId");
 
-                    b.ToTable("WishlistItems", (string)null);
+                    b.ToTable("WishlistItems");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

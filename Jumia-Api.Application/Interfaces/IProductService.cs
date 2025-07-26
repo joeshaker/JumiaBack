@@ -10,7 +10,6 @@ namespace Jumia_Api.Application.Interfaces
     {
         public Task<IEnumerable<ProductDetailsDto>> GetAllProductsWithDetailsAsync();
         public Task<IEnumerable<ProductsUIDto>> GetProductsBySellerIdAsync(int sellerId, string role);
-        public Task DeleteProductAsync(int productId);
         public Task<PagedResult<ProductsUIDto>> GetProductsByCategoriesAsync(string role, ProductFilterRequestDto productFilterRequestDto,
             int pageNumber=1,int pageSize=20);
         public Task<IEnumerable<ProductsUIDto>> SearchProductsAsync(string keyword);
@@ -22,6 +21,14 @@ namespace Jumia_Api.Application.Interfaces
 
         public  Task ActivateProductAsync(int productId);
         public Task DeactivateProductAsync(int productId);
+
+
+        public Task<bool> DeleteProductAsync(int productId);
+
+        public Task<Product> GetProductByIdAsync(int id);
+
+
         public Task UpdateProductAsync(UpdateProductDto request);
+
     }
 }

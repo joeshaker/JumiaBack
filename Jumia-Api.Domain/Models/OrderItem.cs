@@ -33,7 +33,7 @@ namespace Jumia_Api.Domain.Models
         public decimal TotalPrice { get; set; }
 
         [ForeignKey("ProductVariant")]
-        public int? variationId { get; set; } = 0; 
+        public int? variationId { get; set; }  
 
         // Navigation properties
         public SubOrder SubOrder { get; set; }

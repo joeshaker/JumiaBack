@@ -14,11 +14,11 @@ namespace Jumia_Api.Application.Dtos.OrderDtos
         public decimal TotalAmount { get; set; }
         public decimal DiscountAmount { get; set; } = 0;
         public decimal ShippingFee { get; set; } = 0;
-        public decimal TaxAmount { get; set; } = 0;
+        public decimal? TaxAmount { get; set; } = 0;
         public decimal FinalAmount { get; set; }
         public string PaymentMethod { get; set; }
         public int? AffiliateId { get; set; }
-        public string AffiliateCode { get; set; }
+        public string? AffiliateCode { get; set; }
         public string Status { get; set; } = "pending";
         //list of suborders
         public List<SubOrderDTO> SubOrders { get; set; } = new List<SubOrderDTO>();
