@@ -156,7 +156,14 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                     .ToListAsync();
         }
 
-      
+
+        public async Task<Product?> GetProductByIdAsync(int id)
+        {
+           return await _dbSet.FirstOrDefaultAsync(p => p.ProductId == id);
+
+        }
+
+        
     }
 }
 

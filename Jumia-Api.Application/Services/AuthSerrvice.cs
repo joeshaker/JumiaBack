@@ -4,6 +4,7 @@ using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 
 namespace Jumia_Api.Application.Services
 {
@@ -14,14 +15,21 @@ namespace Jumia_Api.Application.Services
         private readonly IOtpService _otpService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailService _emailService;
+        private IConfiguration _configuration;
+
+
 
         public AuthService(IUserService userService, IJwtService jwtService, IOtpService otpService, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOfWork)
+
         {
             _userService = userService;
             _jwtService = jwtService;
             _otpService = otpService;
             _roleManager = roleManager;
             _unitOfWork = unitOfWork;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         public async Task<AuthResult> LoginAsync(LoginDTO dto)
@@ -179,6 +187,60 @@ namespace Jumia_Api.Application.Services
             return (false, $"Failed to create role: {errors}");
         }
 
-       
+        public async Task<AuthResult> ForgetPasswordAsync(string email)
+        {
+            var user = await _userService.FindByEmailAsync(email);
+            if(user == null)
+            {
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "User not Found"
+                };
+            }
+
+            var frontendUrl = _configuration.GetValue<string>("FrontendUrl"); 
+            var token = await _userService.GeneratePasswordResetTokenAsync(user);
+            var resetLink = $"{frontendUrl}/reset-password?token={token}";
+
+            await _emailService.SendEmailAsync(email, "Password Reset", $"Click here to reset your password: {resetLink}");
+
+            return new AuthResult
+            {
+                Successed = true,
+                Message = "Password reset link sent successfully",
+                Token = token
+            };
+            
+        }
+
+        public async Task<AuthResult> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _userService.FindByEmailAsync(resetPasswordDto.Email);
+            if (user == null) 
+            {
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "User not Found"
+                };
+            }
+
+            var resetResult = await _userService.ResetPasswordAsync(resetPasswordDto.Email, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+            if (!resetResult)
+            {
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "Invalid token or expired"
+                };
+            }
+            return new AuthResult
+            {
+                Successed = true,
+                Message = "Password reset successful"
+            };
+
+        }
     }
 }
