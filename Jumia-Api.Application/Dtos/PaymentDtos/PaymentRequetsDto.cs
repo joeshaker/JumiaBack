@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Jumia_Api.Application.Dtos.OrderDtos;
 
 namespace Jumia_Api.Application.Dtos.PaymentDtos
 {
     public class PaymentRequetsDto
     {
+        public CreateOrderDTO Order { get; set; }
         public int OrderId { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "EGP";

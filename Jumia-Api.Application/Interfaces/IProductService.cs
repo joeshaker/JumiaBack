@@ -22,9 +22,13 @@ namespace Jumia_Api.Application.Interfaces
         public  Task ActivateProductAsync(int productId);
         public Task DeactivateProductAsync(int productId);
 
+
         public Task<bool> DeleteProductAsync(int productId);
 
         public Task<Product> GetProductByIdAsync(int id);
+
+
+        public Task UpdateProductAsync(UpdateProductDto request);
 
     }
 }

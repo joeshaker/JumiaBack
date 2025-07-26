@@ -25,15 +25,23 @@ namespace Jumia_Api.Controllers
             return Ok(response);
         }
 
-        [HttpPost("callback")]
-        public async Task<IActionResult> HandleCallback([FromForm] string payload)
+        [HttpGet("callback")]
+        public async Task<IActionResult> HandleCallback([FromQuery] Dictionary<string, string> queryParams)
         {
-            var success = await _paymentService.ValidatePaymentCallback(payload.ToString());
+            // Optional: Log or debug query parameters
+            //foreach (var param in queryParams)
+            //{
+            //    Console.WriteLine($"{param.Key} = {param.Value}");
+            //}
+
+            // Example: pass the dictionary as a stringified payload if needed
+            var success = await _paymentService.ValidatePaymentCallback(System.Text.Json.JsonSerializer.Serialize(queryParams));
 
             if (!success)
                 return BadRequest("Invalid callback");
 
             return Ok("Callback processed");
         }
+
     }
 }

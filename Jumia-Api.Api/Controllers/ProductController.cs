@@ -148,8 +148,14 @@ namespace Jumia_Api.Api.Controllers
             return Ok(options);
         }
 
-        [HttpDelete("delete/{id:int}")]
-        public async Task<IActionResult> DeleteProduct(int id)
+
+
+
+
+
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductDto product)
+
         {
             var product = await _productService.GetProductByIdAsync(id);
             if (product == null)
@@ -174,9 +180,15 @@ namespace Jumia_Api.Api.Controllers
                         return BadRequest(ModelState);
                     }
 
+
                     await _productService.UpdateProductAsync(product);
                     return Ok();
                 }*/
+
+            await _productService.UpdateProductAsync(product);
+            return Ok();
+        }
+
 
     }
 }

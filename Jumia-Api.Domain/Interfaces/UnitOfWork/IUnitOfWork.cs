@@ -22,17 +22,20 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
         ICouponRepo CouponRepo { get; }
 
         IUserCouponRepo UserCouponRepo { get; }
+        IsuborderRepo SubOrderRepo { get; }
 
 
 
-
+        IProductAttributeValueRepo ProductAttributeValueRepo { get; }
         ICartItemRepo CartItemRepo { get; }
         ICustomerRepo CustomerRepo { get; }
         ISellerRepo SellerRepo { get; }
         IOrderRepository OrderRepo { get; }
-
-
+        IVariantAttributeRepo VariantAttributeRepo { get; }
+        IVariantRepo VariantRepo { get; }
         IRatingRepo RatingRepo { get; }
+
+        ISellerRepo SellerRepo { get; }
 
         IWishlistRepo WishlistRepo { get; }
         IWishlistItemRepo WishlistItemRepo { get; }
