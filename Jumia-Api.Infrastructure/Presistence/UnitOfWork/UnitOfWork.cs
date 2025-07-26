@@ -27,6 +27,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
 
         private IRatingRepo? _ratingRepo;
+        private ISellerRepo _sellerRepo;
 
         private readonly Dictionary<Type, object> _repositories = new();
         private ICouponRepo? _couponRepo;
@@ -56,6 +57,7 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
         public ICartRepo CartRepo => _cartRepo ?? new CartRepo(_context);
 
+        public ISellerRepo SellerRepo => _sellerRepo ?? new SellerRepo(_context);
         public ICartItemRepo CartItemRepo => _cartItemRepo ?? new CartItemRepo(_context);
 
         public ICustomerRepo CustomerRepo => _customerRepo ?? new CustomerRepo(_context);
