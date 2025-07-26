@@ -15,9 +15,9 @@ namespace Jumia_Api.Application.Dtos.OrderDtos
         public decimal Subtotal { get; set; }
         public string Status { get; set; } = "pending";
         public DateTime StatusUpdatedAt { get; set; } = DateTime.UtcNow;
-        public string TrackingNumber { get; set; }
-        public string ShippingProvider { get; set; }
-        public string ReturnReason { get; set; }
+        public string? TrackingNumber { get; set; }
+        public string? ShippingProvider { get; set; }
+        public string? ReturnReason { get; set; }
 
         public DateTime? ReturnRequestedAt { get; set; }
 
