@@ -29,10 +29,19 @@ namespace Jumia_Api.Application.Services
         }
 
 
-        public  async Task DeleteProductAsync(int productId)
+        public  async Task<bool> DeleteProductAsync(int productId)
         {
+            var product = await _unitOfWork.ProductRepo.GetByIdAsync(productId);
+            if (product == null) { return false; }
             await _unitOfWork.ProductRepo.Delete(productId);
             await _unitOfWork.SaveChangesAsync();
+   
+            return true;
+        }
+
+        public async Task<Product> GetProductByIdAsync(int id)
+        {
+            return await _unitOfWork.ProductRepo.GetByIdAsync(id);
         }
 
         public async Task <IEnumerable<ProductDetailsDto>> GetAllProductsWithDetailsAsync()
@@ -49,13 +58,7 @@ namespace Jumia_Api.Application.Services
             return _mapper.Map<IEnumerable<ProductDetailsDto>>(products);
         }
 
-
-
-
-
-
-
-
+      
         public async Task<IEnumerable<ProductsUIDto>> GetProductsBySellerIdAsync(int sellerId, string role)
         {
             var products = await _unitOfWork.ProductRepo.GetProductsBySellerId(sellerId);
@@ -231,10 +234,6 @@ namespace Jumia_Api.Application.Services
                 product.ProductImages.Add(new ProductImage { ImageUrl = imageUrl });
             }
 
-
-
-
-
             var categoryAttributes = await _unitOfWork.ProductAttributeRepo
                 .GetAttributesByCategoryIdAsync(request.CategoryId);
             if (request.Variants != null || request.Variants.Any())
@@ -374,14 +373,6 @@ namespace Jumia_Api.Application.Services
 
             return new AttributeOptionsResponseDto { NextOptions = nextOptions };
         }
-
-
-
-
-
-
-
-
 
 
 
@@ -588,6 +579,7 @@ namespace Jumia_Api.Application.Services
             _unitOfWork.ProductRepo.Update(existingProduct); // Assuming a generic Update method
             await _unitOfWork.SaveChangesAsync();
         }
+
 
 
 
