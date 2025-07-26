@@ -171,5 +171,7 @@ namespace Jumia_Api.Application.Services
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             return (false, $"Failed to create role: {errors}");
         }
+
+       
     }
 }
