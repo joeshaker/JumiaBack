@@ -4,6 +4,7 @@ using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jumia_Api.Infrastructure.Context.Migrations
 {
     [DbContext(typeof(JumiaDbContext))]
-    partial class JumiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250726111331_affiltate")]
+    partial class affiltate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1104,6 +1107,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ReturnReason")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ReturnReceivedAt")
@@ -1116,6 +1120,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ShippingProvider")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -1131,6 +1136,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .HasColumnType("decimal(10, 2)");
 
                     b.Property<string>("TrackingNumber")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
