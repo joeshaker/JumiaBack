@@ -35,8 +35,7 @@ namespace Jumia_Api.Domain.Interfaces.UnitOfWork
         IVariantRepo VariantRepo { get; }
         IRatingRepo RatingRepo { get; }
 
-        ISellerRepo SellerRepo { get; }
-
+        
         IWishlistRepo WishlistRepo { get; }
         IWishlistItemRepo WishlistItemRepo { get; }
 
