@@ -41,7 +41,7 @@ namespace Jumia_Api.Api.DependencyInjection.Application
 
             services.AddMemoryCache();
             services.AddScoped<IOtpService, OtpService>();
-            services.AddScoped<IEmailService, EmailService>();
+            
             services.AddScoped<IUserService, UserService>();
 
             services.AddScoped<IAddressService, AddressService>();
