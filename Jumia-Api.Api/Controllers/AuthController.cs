@@ -18,13 +18,15 @@ namespace Jumia_Api.Api.Controllers
         private readonly IOtpService _otpService;
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
-       
-        public AuthController(IOtpService otpService, IEmailService emailService, IUserService userService, IAuthService authService)
+        private readonly IConfirmationEmailService _confirmationEmailService;
+
+        public AuthController(IOtpService otpService, IUserService userService, IAuthService authService, IConfirmationEmailService confirmationEmailService)
         {
             _otpService = otpService;
-            _emailService = emailService;
+
             _userService = userService;
             _authService = authService;
+            _confirmationEmailService = confirmationEmailService;
         }
 
         [HttpPost("email-check")]
@@ -35,7 +37,7 @@ namespace Jumia_Api.Api.Controllers
                 return Ok(new {isRegistered = true, message = "Email already registered"});
             }
             var otp = _otpService.GenerateOtp(dto.Email);
-            await _emailService.SendEmailAsync(dto.Email, "Your OTP Code", $"Your OTP code is: {otp}");
+           _confirmationEmailService.SendConfirmationEmailAsync(dto.Email, otp, "otpcode");
 
             return Ok(new {isRegistered = false, message = "Email not registered, OTP sent", otp });
         }

@@ -15,6 +15,7 @@ namespace Jumia_Api.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly RoleManager<IdentityRole> _roleManager;
 
+
         public AuthService(IUserService userService, IJwtService jwtService, IOtpService otpService, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOfWork)
         {
             _userService = userService;
