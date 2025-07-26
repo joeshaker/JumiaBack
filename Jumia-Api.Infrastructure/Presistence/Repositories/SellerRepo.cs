@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace Jumia_Api.Infrastructure.Presistence.Repositories
 {
-    public class SellerRepo : GenericRepo<Seller>,ISellerRepo
+    public class SellerRepo : GenericRepo<Seller>, ISellerRepo
     {
-        public SellerRepo(JumiaDbContext dbContext):base(dbContext)
+        public SellerRepo(JumiaDbContext dbContext) : base(dbContext)
         {
             // Initialize the repository with the database context
             // This is where you would typically set up your DbSet<Seller> if using EF Core
@@ -42,11 +42,12 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
         public void Update(Seller entity)
         {
             throw new NotImplementedException();
-            }
-            
-                    public async Task<Seller> GetSellerByUserID(string userId)
+        }
+
+        public async Task<Seller> GetSellerByUserID(string userId)
         {
-            return await _dbSet.Where(s=>s.UserId ==userId).FirstOrDefaultAsync();
+            return await _dbSet.Where(s => s.UserId == userId).FirstOrDefaultAsync();
 
         }
+    }
 }
