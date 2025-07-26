@@ -16,7 +16,10 @@ namespace Jumia_Api.Application.MappingProfiles
             CreateMap<CreateOrderDTO, Order>()
                 .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => "pending"))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
-                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(dest=>dest.AffiliateCode,opt=> opt.MapFrom(src => src.AffiliateCode ?? "N/A"))
+
+                ;
 
             CreateMap<UpdateOrderDTO, Order>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
@@ -32,7 +35,14 @@ namespace Jumia_Api.Application.MappingProfiles
                 .ForMember(dest=>dest.ID,opt=>opt.MapFrom(src => src.SubOrderId))
                 .ReverseMap();
 
-            CreateMap<OrderItem, OrderItemDTO>().ReverseMap();
+            CreateMap<OrderItem, OrderItemDTO>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
+            CreateMap<OrderItemDTO, OrderItem>()
+                .ForMember(dest => dest.Product, opt => opt.Ignore())
+                .ForMember(dest=>dest.ProductVariant, opt => opt.Ignore())
+                .ForMember(dest => dest.SubOrder, opt => opt.Ignore());
+
+
 
             CreateMap<OrderDTO, Order>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()) 

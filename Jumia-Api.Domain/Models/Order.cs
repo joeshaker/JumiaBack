@@ -58,8 +58,8 @@ namespace Jumia_Api.Domain.Models
         [ForeignKey("Affiliate")]
         public int? AffiliateId { get; set; }
 
-        [MaxLength(20)]
-        public string AffiliateCode { get; set; }
+       
+        public string? AffiliateCode { get; set; } ="N/A";
 
         // Navigation properties
         public Customer Customer { get; set; }
