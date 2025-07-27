@@ -12,5 +12,6 @@ namespace Jumia_Api.Application.Dtos.PaymentDtos
         public string PaymentUrl { get; set; }
         public string? TransactionId { get; set; }
         public string Message { get; set; }
+        public string? ErrorDetails { get; set; }
     }
 }
