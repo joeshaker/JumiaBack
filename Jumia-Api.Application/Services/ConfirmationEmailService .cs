@@ -1,19 +1,14 @@
 ﻿using Jumia_Api.Application.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Jumia_Api.Application.Services
 {
     public class ConfirmationEmailService : IConfirmationEmailService
     {
         private readonly IEmailService _emailService;
-        private readonly ILogger _logger;
+        private readonly ILogger<ConfirmationEmailService> _logger;
 
-        public ConfirmationEmailService(IEmailService emailService, ILogger logger)
+        public ConfirmationEmailService(IEmailService emailService, ILogger<ConfirmationEmailService> logger)
         {
             _emailService = emailService;
             _logger = logger;
@@ -21,17 +16,39 @@ namespace Jumia_Api.Application.Services
 
        
 
-        public void SendConfirmationEmailAsync(string email, string token)
+        public void SendConfirmationEmailAsync(string email, string token, string status)
         {
             // Fire-and-forget using ThreadPool
             ThreadPool.QueueUserWorkItem(async _ =>
             {
-                var confirmationLink = $"https://yourapp.com/confirm?token={token}";
-                var htmlMessage = $"<p>Click <a href='{confirmationLink}'>here</a> to confirm your email.</p>";
+                string message = string.Empty;
+                string htmlMessage = string.Empty;
+                if (status == "otpcode")
+                {
+                     message = $"Your OTP code is: {token}. Please use this code to complete your registration.";
+                    htmlMessage = $"<p>Your OTP code is: <strong>{token}</strong>. Please use this code to complete your registration.</p>";
+                }
+                if(status == "confirmation link")
+                {
+                    message = $"https://yourapp.com/confirm?token={token}";
+                    htmlMessage = $"<p>Click the link to confirm your account: <a href='https://yourapp.com/confirm?token={token}'>Confirm Account</a></p>";
+
+
+                }
+               
 
                 try
                 {
+                    if(!string.IsNullOrEmpty(message) && !string.IsNullOrEmpty(htmlMessage))
+                    {
+                        
                     await _emailService.SendEmailAsync(email, "Confirm your account", htmlMessage);
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Message or HTML message cannot be empty");
+                    }
+                   
                 }
                 catch (Exception ex)
                 {

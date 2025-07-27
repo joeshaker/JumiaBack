@@ -34,23 +34,52 @@ namespace Jumia_Api.Application.Services
 
         public async Task<IEnumerable<SellerInfo>> GetAll()
         {
-            var Sellers = await _unitOfWork.SellerRepo.GetAllAsync();
+            var sellers = await _unitOfWork.SellerRepo.GetAllAsync();
+            var sellerInfos = new List<SellerInfo>();
 
-            var sellerInfos = Sellers.Select(s => new SellerInfo
+            foreach (var seller in sellers)
             {
-                SellerId = s.SellerId,
-                UserId = s.UserId,
-                BusinessName = s.BusinessName,
-                ImageUrl = s.ImageUrl,
-                BusinessDescription = s.BusinessDescription,
-                BusinessLogo = s.BusinessLogo,
-                IsVerified = s.IsVerified,
-                VerifiedAt = s.VerifiedAt,
-                Rating = s.Rating
-            });
+                var products = await _unitOfWork.ProductRepo.GetAvailableProductsBySellerId(seller.SellerId);
+                var productIds = products.Select(p => p.ProductId).ToList();
+
+                var subOrders = await _unitOfWork.SubOrderRepo.GetSubOrdersBySellerIdAsync(seller.SellerId);
+
+                // Optional debug log
+                foreach (var so in subOrders)
+                {
+                    Console.WriteLine($"SubOrder Id: {so.SubOrderId}, SellerId: {so.SellerId}, OrderItems: {(so.OrderItems == null ? "null" : so.OrderItems.Count.ToString())}");
+                }
+
+                var orderItems = subOrders
+                    .SelectMany(so => so.OrderItems ?? new List<OrderItem>())
+                    .Where(oi => productIds.Contains(oi.ProductId))
+                    .ToList();
+
+                var totalProductsSold = orderItems.Sum(oi => oi.Quantity);
+                var totalAmountSold = orderItems.Sum(oi => oi.Quantity * oi.PriceAtPurchase);
+
+                sellerInfos.Add(new SellerInfo
+                {
+                    SellerId = seller.SellerId,
+                    UserId = seller.UserId,
+                    BusinessName = seller.BusinessName,
+                    ImageUrl = seller.ImageUrl,
+                    BusinessDescription = seller.BusinessDescription,
+                    BusinessLogo = seller.BusinessLogo,
+                    IsVerified = seller.IsVerified,
+                    VerifiedAt = seller.VerifiedAt,
+                    Rating = seller.Rating,
+                    TotalProductsSold = totalProductsSold,
+                    TotalAmountSold = totalAmountSold
+                });
+            }
 
             return sellerInfos;
         }
+
+
+
+
 
         public async Task<bool> IsVerified(int sellerId)
         {

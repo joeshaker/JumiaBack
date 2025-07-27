@@ -1,6 +1,7 @@
 ﻿using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Application.Dtos.PaymentDtos;
 using Microsoft.AspNetCore.Mvc;
+using Jumia_Api.Application.Dtos.OrderDtos;
 
 namespace Jumia_Api.Controllers
 {
@@ -16,7 +17,7 @@ namespace Jumia_Api.Controllers
         }
 
         [HttpPost("initiate")]
-        public async Task<IActionResult> InitiatePayment([FromBody] PaymentRequetsDto request)
+        public async Task<IActionResult> InitiatePayment([FromBody] CreateOrderDTO request)
         {
             var response = await _paymentService.InitiatePaymentAsync(request);
             if (!response.Success)
