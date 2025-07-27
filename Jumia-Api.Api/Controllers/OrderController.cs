@@ -115,7 +115,7 @@ namespace Jumia_Api.Api.Controllers
                 return NotFound("No suborders found for the specified order.");
             return Ok(subOrders);
         }
-        [HttpGet("suborders/seller/{sellerId}")]
+        [HttpGet("suborders/seller")]
         public async Task<ActionResult<IEnumerable<SubOrderDTO>>> GetSubOrdersBySellerId()
         {
             var sellerId = GetCustomerId();
