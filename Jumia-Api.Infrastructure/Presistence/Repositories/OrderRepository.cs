@@ -28,9 +28,9 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Order>> GetWithDetailsAsync(int id)
+        public  async Task<Order> GetWithDetailsAsync(int id)
         {
-            return await _dbSet
+            return await   _dbSet
                 .Where(o => o.OrderId == id).AsSplitQuery()
                 .Include(o => o.Customer)
                 .Include(o => o.Address)
@@ -39,7 +39,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 .ThenInclude(so => so.OrderItems)
                 .ThenInclude(oi => oi.Product)
                 .AsNoTracking()
-                .ToListAsync();
+                .FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Order>> GetAllWithDetailsAsync()

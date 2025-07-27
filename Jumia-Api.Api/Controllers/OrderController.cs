@@ -1,4 +1,5 @@
-﻿using Jumia_Api.Application.Dtos.OrderDtos;
+﻿using Jumia_Api.Application.Common.Results;
+using Jumia_Api.Application.Dtos.OrderDtos;
 using Jumia_Api.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -42,10 +43,19 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<OrderDTO>> CreateOrder(CreateOrderDTO orderDto)
+        public async Task<ActionResult<OrderCreationResult>> CreateOrder(CreateOrderDTO orderDto)
         {
-            var createdOrder = await _orderService.CreateOrderAsync(orderDto);
-            return CreatedAtAction(nameof(GetOrderById), new { id = createdOrder.OrderId }, createdOrder);
+            var result = await _orderService.CreateOrderAsync(orderDto);
+
+            if (result.Success)
+            {
+                return CreatedAtAction(nameof(CreateOrder), new { id = result.Order.OrderId }, result.Order);
+            }
+            else
+            {
+               
+                return BadRequest(new { message = result.ErrorMessage, details = result.ErrorDetails });
+            }
         }
 
         [HttpPut("{id}")]
