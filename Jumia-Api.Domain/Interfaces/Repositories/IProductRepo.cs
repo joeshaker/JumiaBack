@@ -21,6 +21,10 @@ namespace Jumia_Api.Domain.Interfaces.Repositories
         public Task<IEnumerable<Product>> GetAllWithVariantsAndAttributesAsync();
         public Task Deactivate(int productId);
         public Task Activate(int productId);
+
+        public Task<Product> GetProductByIdAsync(int id);
+
+        //public Task DeleteProductAsync(Product product);
        
     }
 }

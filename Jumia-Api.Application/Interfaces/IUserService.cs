@@ -30,6 +30,14 @@ namespace Jumia_Api.Application.Interfaces
         public Task<string?> GetUserRoleAsync(AppUser user);
         public Task AddUserToRoleAsync(AppUser user, string role);
 
+        public Task<IEnumerable<UserProfileDto>> GetAllCustomersAsync();
+
+        public Task<IEnumerable<UserProfileDto>> GetAllSellersAsync();
+
+        public Task<string> GeneratePasswordResetTokenAsync(AppUser user);
+
+        public Task<bool> ResetPasswordAsync(string email, string token, string newPassword);
+
 
     }
 }

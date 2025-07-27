@@ -122,5 +122,49 @@ namespace Jumia_Api.Application.Services
             }
 
         }
+
+        public async Task<IEnumerable<UserProfileDto>> GetAllCustomersAsync()
+        {
+            var customerRole = "customer";
+            var role = await _roleManager.FindByNameAsync(customerRole);
+            if(role == null)
+            {
+                throw new KeyNotFoundException($"Role {customerRole} not found.");
+            }
+
+            var userInRole = await _userManager.GetUsersInRoleAsync(customerRole);
+
+            return userInRole.Select(user => _mapper.Map<UserProfileDto>(user));
+
+        }
+
+        public async Task<IEnumerable<UserProfileDto>> GetAllSellersAsync()
+        {
+            var sellerRole = "seller";
+            var role = await _roleManager.FindByNameAsync(sellerRole);
+            if (role == null)
+            {
+                throw new KeyNotFoundException($"Role {sellerRole} not found.");
+            }
+
+            var userInRole = await _userManager.GetUsersInRoleAsync(sellerRole);
+
+            return userInRole.Select(user => _mapper.Map<UserProfileDto>(user));
+
+        }
+
+        public async Task<string> GeneratePasswordResetTokenAsync(AppUser user)
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            return token;
+            
+        }
+
+        public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            return result.Succeeded;
+        }
     }
 }

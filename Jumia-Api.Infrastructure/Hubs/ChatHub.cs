@@ -2,13 +2,7 @@
 using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Jumia_Api.Infrastructure.Hubs
 {
@@ -41,14 +35,11 @@ namespace Jumia_Api.Infrastructure.Hubs
                 // Get user's active chat and join chat group
                 if (userRole != "Admin")
                 {
-                    var userChat = await _chatService.GetUserChatAsync(userId);
-                    if (userChat != null)
+                    var userChats = await _chatService.GetUserChatAsync(userId);
+                    var activeUserChat = userChats?.FirstOrDefault(c => c.Status == ChatStatus.Active.ToString());
+                    if (activeUserChat != null)
                     {
-
-
-                        
-                        await Groups.AddToGroupAsync(Context.ConnectionId, $"Chat_{userChat.FirstOrDefault(c => c.Status == ChatStatus.Active.ToString()).UserId}");
-
+                        await Groups.AddToGroupAsync(Context.ConnectionId, $"Chat_{activeUserChat.Id}");
                     }
                 }
             }
@@ -92,5 +83,58 @@ namespace Jumia_Api.Infrastructure.Hubs
                 await _chatService.MarkMessagesAsReadAsync(chatGuid, userId);
             }
         }
+
+
+
+        [Authorize(Roles = "Admin")]
+        public async Task AssignChat(string chatId)
+        {
+            var adminId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var adminName = Context.User?.FindFirst(ClaimTypes.Name)?.Value; // Assuming Name claim holds the admin's name
+
+            if (adminId == null || !Guid.TryParse(chatId, out var chatGuid))
+            {
+                // Optionally send an error back to the client or log
+                return;
+            }
+
+            try
+            {
+                var assignedChat = await _chatService.AssignChatToAdminAsync(chatGuid, adminId, adminName);
+                // Notify only the admin who assigned the chat and the user whose chat was assigned
+                await Clients.Group($"User_{assignedChat.UserId}").SendAsync("ChatAssigned", assignedChat);
+                await Clients.Caller.SendAsync("ChatAssigned", assignedChat); // Notify the assigning admin
+                await Clients.Group("Admins").SendAsync("ChatAssignedToAdmin", assignedChat); // Notify all admins about the assignment
+            }
+            catch (ArgumentException ex)
+            {
+                // Handle chat not found or other service-level errors
+                await Clients.Caller.SendAsync("ChatAssignmentError", $"Error assigning chat: {ex.Message}");
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task CloseChat(string chatId)
+        {
+            if (!Guid.TryParse(chatId, out var chatGuid))
+            {
+                return;
+            }
+
+            try
+            {
+                var closedChat = await _chatService.CloseChatAsync(chatGuid);
+                // Notify all participants and admins that the chat is closed
+                await Clients.Group($"Chat_{chatId}").SendAsync("ChatClosed", closedChat);
+                await Clients.Group("Admins").SendAsync("ChatClosedByAdmin", closedChat);
+                // Remove all connections from this chat group
+                await Clients.Group($"Chat_{chatId}").SendAsync("ForceLeaveChatGroup", chatId); // Custom event to tell clients to leave
+            }
+            catch (ArgumentException ex)
+            {
+                await Clients.Caller.SendAsync("ChatCloseError", $"Error closing chat: {ex.Message}");
+            }
+        }
     }
 }
+

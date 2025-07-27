@@ -10,6 +10,7 @@ using Jumia_Api.Infrastructure.Presistence.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Qdrant.Client;
+using Jumia_Api.Infrastructure.External_Services;
 
 namespace Jumia_Api.Api.DependencyInjection.Infrastructure
 {
@@ -30,6 +31,8 @@ namespace Jumia_Api.Api.DependencyInjection.Infrastructure
 
             services.AddScoped<IProductAiService, ProductAiService > ();
             services.AddSingleton(new QdrantClient(host: "localhost", port: 6334, https: false));
+            services.AddScoped<IConfirmationEmailService,ConfirmationEmailService>();
+            services.AddScoped<IEmailService, SendGridEmailService>();
 
 
             return services;
