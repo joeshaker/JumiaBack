@@ -196,7 +196,7 @@ namespace Jumia_Api.Application.Services
 
             if (order.Status == "cancelled")
                 return false;
-            CancelOrderTransactionAsync(id);
+            await CancelOrderTransactionAsync(id);
 
             //if (order.Status == "shipped" || order.Status == "delivered")
             //    return false;
@@ -290,6 +290,24 @@ namespace Jumia_Api.Application.Services
                 // Log the full exception details in a production environment
                 return false;
             }
+        }
+
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
+        {
+            var order =  await _unitOfWork.OrderRepo.GetByIdAsync(orderId);
+            if (order == null)
+            {
+                return false;
+            }
+            var success = await _unitOfWork.OrderRepo.UpdateOrderStatus(orderId, status);
+            if (!success)
+            {
+                return false;
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+            return true;
+
         }
     }
 

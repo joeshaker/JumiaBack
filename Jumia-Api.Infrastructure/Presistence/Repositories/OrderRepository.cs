@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Jumia_Api.Infrastructure.Presistence.Repositories
 {
-    public class OrderRepository:GenericRepo<Order>,IOrderRepository
+    public class OrderRepository : GenericRepo<Order>, IOrderRepository
     {
         public OrderRepository(JumiaDbContext context) : base(context)
         {
@@ -62,6 +62,28 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
             order.Status = "cancelled";
             order.UpdatedAt = DateTime.UtcNow;
+            _dbSet.Update(order);
+            return true;
+        }
+
+        public async Task<bool> UpdateOrderStatus(int orderid, string stauts)
+        {
+            var order = await _dbSet.FirstOrDefaultAsync(o => o.OrderId == orderid);
+            if (order ==null)
+            {
+                return false;
+            }
+            order.Status = stauts.ToLower();
+            var DeliverdStatus = "Delivered";
+            if (stauts == DeliverdStatus.ToLower())
+            {
+                order.PaymentStatus = "paid";
+            }
+            else if (stauts == "Cancelled")
+            {
+                order.PaymentStatus = "refunded";
+            }
+                order.UpdatedAt = DateTime.UtcNow;
             _dbSet.Update(order);
             return true;
         }

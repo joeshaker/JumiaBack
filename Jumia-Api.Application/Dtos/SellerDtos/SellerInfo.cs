@@ -11,6 +11,9 @@ namespace Jumia_Api.Application.Dtos.SellerDtos
     public class SellerInfo
     {
         public int SellerId { get; set; }
+
+        public string SellerName { get; set; }
+        public string Email { get; set; }
         public string UserId { get; set; }
         public string BusinessName { get; set; }
         public string? ImageUrl { get; set; }
