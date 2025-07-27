@@ -79,6 +79,8 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
         public IVariantAttributeRepo VariantAttributeRepo => _variantAttributeRepo ?? new VariantAttributeRepo(_context);
 
+        public ISellerRepo SellerRepo => _sellerRepo ?? new SellerRepo(_context);
+
         public void Dispose()
         {
             _context.Dispose();
