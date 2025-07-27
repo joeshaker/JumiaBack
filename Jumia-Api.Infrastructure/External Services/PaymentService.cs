@@ -10,6 +10,7 @@ using EllipticCurve.Utils;
 using Jumia_Api.Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Jumia_Api.Application.Dtos.OrderDtos;
+using AutoMapper;
 
 namespace Jumia_Api.Services.Implementation
 {
@@ -22,10 +23,12 @@ namespace Jumia_Api.Services.Implementation
         private readonly string _integrationId;
         private readonly string _iframeId;
         private readonly UserManager<AppUser> _userManager;
+        private IMapper _mapper;
 
-        public PaymentService(HttpClient httpClient, IConfiguration config, IUnitOfWork unitOfWork,UserManager<AppUser> userManager)
+        public PaymentService(IMapper mapper,HttpClient httpClient, IConfiguration config, IUnitOfWork unitOfWork,UserManager<AppUser> userManager)
         {
             _httpClient = httpClient;
+            _mapper = mapper;
             _config = config;
             _unitOfWork = unitOfWork;
             _apiKey = _config["Paymob:ApiKey"];
@@ -34,79 +37,36 @@ namespace Jumia_Api.Services.Implementation
             _userManager = userManager;
         }
 
-        public async Task<PaymentResponseDto> InitiatePaymentAsync(PaymentRequetsDto request)
+        public async Task<PaymentResponseDto> InitiatePaymentAsync(CreateOrderDTO orderDto)
         {
             try
             {
-                // 1. Create and save the Order with nested SubOrders and OrderItems
-                var orderDto = request.Order;
-
-                var newOrder = new Order
-                {
-                    CustomerId = orderDto.CustomerId,
-                    AddressId = orderDto.AddressId,
-                    CouponId = orderDto.CouponId,
-                    TotalAmount = orderDto.TotalAmount,
-                    DiscountAmount = orderDto.DiscountAmount,
-                    ShippingFee = orderDto.ShippingFee,
-                    TaxAmount = orderDto.TaxAmount,
-                    FinalAmount = orderDto.FinalAmount,
-                    PaymentMethod = orderDto.PaymentMethod,
-                    AffiliateId = orderDto.AffiliateId,
-                    AffiliateCode = orderDto.AffiliateCode,
-                    Status = "pending",
-                    PaymentStatus = "pending",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    SubOrders = orderDto.SubOrders.Select(subOrder => new SubOrder
-                    {
-                        SellerId = subOrder.SellerId,
-                        Subtotal = subOrder.Subtotal,
-                        Status = "pending",
-                        StatusUpdatedAt = DateTime.UtcNow,
-                        OrderItems = subOrder.OrderItems.Select(item => new OrderItem
-                        {
-                            ProductId = item.ProductId,
-                            Quantity = item.Quantity,
-                            PriceAtPurchase = item.PriceAtPurchase,
-                            TotalPrice = item.TotalPrice,
-                            variationId = item.VariationId
-                        }).ToList()
-                    }).ToList()
-                };
+                // 1. Map and save order with suborders + items
+                var newOrder = _mapper.Map<Order>(orderDto);
 
                 await _unitOfWork.OrderRepo.AddAsync(newOrder);
-                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync(); // OrderId is now generated
 
-                // 2. Continue payment processing
+                // 2. Use the generated OrderId to build PaymentRequestDto internally
+                var paymentRequest = new PaymentRequetsDto
+                {
+
+                    Order = orderDto,
+                    OrderId = newOrder.OrderId,
+                    Amount = newOrder.FinalAmount,
+                    Currency = "EGP",
+                    PaymentMethod = newOrder.PaymentMethod
+
+                };
+
+                // 3. Continue Paymob flow
                 var token = await GetAuthTokenAsync();
 
-                var paymobOrderId = await RegisterOrderAsync(token, new PaymentRequetsDto
-                {
-                    Amount = request.Amount,
-                    Currency = request.Currency,
-                    PaymentMethod = request.PaymentMethod,
-                    Order = new CreateOrderDTO
-                    {
-                        CustomerId = newOrder.CustomerId,
-                        AddressId = newOrder.AddressId,
-                        TotalAmount = newOrder.TotalAmount,
-                        FinalAmount = newOrder.FinalAmount,
-                        PaymentMethod = newOrder.PaymentMethod,
-                        Status = newOrder.Status,
-                        // rest is not needed in merchant_order_id for Paymob
-                    }
-                });
+                var paymobOrderId = await RegisterOrderAsync(token, paymentRequest);
 
-                var paymentKey = await GeneratePaymentKeyAsync(token, paymobOrderId, new PaymentRequetsDto
-                {
-                    Amount = request.Amount,
-                    Currency = request.Currency,
-                    PaymentMethod = request.PaymentMethod,
-                    Order = orderDto
-                });
+                var paymentKey = await GeneratePaymentKeyAsync(token, paymobOrderId, paymentRequest);
 
-                var iframeUrl = GetPaymentUrl(paymentKey, request.PaymentMethod);
+                var iframeUrl = GetPaymentUrl(paymentKey, paymentRequest.PaymentMethod);
 
                 return new PaymentResponseDto
                 {
@@ -125,6 +85,7 @@ namespace Jumia_Api.Services.Implementation
                 };
             }
         }
+
 
         private async Task<string> GetAuthTokenAsync()
         {
