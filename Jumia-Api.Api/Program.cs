@@ -135,7 +135,7 @@ namespace Jumia_Api.Api
                 });
             });
 
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            // Learn msore about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
 

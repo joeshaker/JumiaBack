@@ -18,7 +18,7 @@ namespace Jumia_Api.Api.Controllers
             _userService = userService;
         }
         [HttpGet("profile")]
-        [Authorize]
+        
         public async Task<ActionResult<UserProfileDto>> GetProfile()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -32,5 +32,20 @@ namespace Jumia_Api.Api.Controllers
             await _userService.UpdateUserProfileAsync(userId, updateDto);
             return NoContent();
         }
+
+        [HttpGet("customers")]
+        public async Task<ActionResult<IEnumerable<UserProfileDto>>> GetAllCustomers()
+        {
+            var customers = await _userService.GetAllCustomersAsync();
+            return Ok(customers);
+        }
+
+        [HttpGet("sellers")]
+        public async Task<ActionResult<IEnumerable<UserProfileDto>>> GetAllSellers()
+        {
+            var sellers = await _userService.GetAllSellersAsync();
+            return Ok(sellers);
+        }
+
     }
 }

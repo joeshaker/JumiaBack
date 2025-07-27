@@ -9,6 +9,8 @@ using Jumia_Api.Application.Dtos.PaymentDtos;
 using EllipticCurve.Utils;
 using Jumia_Api.Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Jumia_Api.Application.Dtos.OrderDtos;
+using AutoMapper;
 
 namespace Jumia_Api.Services.Implementation
 {
@@ -21,10 +23,12 @@ namespace Jumia_Api.Services.Implementation
         private readonly string _integrationId;
         private readonly string _iframeId;
         private readonly UserManager<AppUser> _userManager;
+        private IMapper _mapper;
 
-        public PaymentService(HttpClient httpClient, IConfiguration config, IUnitOfWork unitOfWork,UserManager<AppUser> userManager)
+        public PaymentService(IMapper mapper,HttpClient httpClient, IConfiguration config, IUnitOfWork unitOfWork,UserManager<AppUser> userManager)
         {
             _httpClient = httpClient;
+            _mapper = mapper;
             _config = config;
             _unitOfWork = unitOfWork;
             _apiKey = _config["Paymob:ApiKey"];
@@ -33,18 +37,36 @@ namespace Jumia_Api.Services.Implementation
             _userManager = userManager;
         }
 
-        public async Task<PaymentResponseDto> InitiatePaymentAsync(PaymentRequetsDto request)
+        public async Task<PaymentResponseDto> InitiatePaymentAsync(CreateOrderDTO orderDto)
         {
             try
             {
-                var order = await _unitOfWork.OrderRepo.GetByIdAsync(request.OrderId);
-                if (order == null)
-                    return new() { Success = false, Message = "Order not found." };
+                // 1. Map and save order with suborders + items
+                var newOrder = _mapper.Map<Order>(orderDto);
 
+                await _unitOfWork.OrderRepo.AddAsync(newOrder);
+                await _unitOfWork.SaveChangesAsync(); // OrderId is now generated
+
+                // 2. Use the generated OrderId to build PaymentRequestDto internally
+                var paymentRequest = new PaymentRequetsDto
+                {
+
+                    Order = orderDto,
+                    OrderId = newOrder.OrderId,
+                    Amount = newOrder.FinalAmount,
+                    Currency = "EGP",
+                    PaymentMethod = newOrder.PaymentMethod
+
+                };
+
+                // 3. Continue Paymob flow
                 var token = await GetAuthTokenAsync();
-                var paymobOrderId = await RegisterOrderAsync(token, request);
-                var paymentKey = await GeneratePaymentKeyAsync(token, paymobOrderId, request);
-                var iframeUrl = GetPaymentUrl(paymentKey, request.PaymentMethod);
+
+                var paymobOrderId = await RegisterOrderAsync(token, paymentRequest);
+
+                var paymentKey = await GeneratePaymentKeyAsync(token, paymobOrderId, paymentRequest);
+
+                var iframeUrl = GetPaymentUrl(paymentKey, paymentRequest.PaymentMethod);
 
                 return new PaymentResponseDto
                 {
@@ -64,6 +86,7 @@ namespace Jumia_Api.Services.Implementation
             }
         }
 
+
         private async Task<string> GetAuthTokenAsync()
         {
             var response = await _httpClient.PostAsJsonAsync("https://accept.paymob.com/api/auth/tokens", new { api_key = _apiKey });
@@ -79,19 +102,29 @@ namespace Jumia_Api.Services.Implementation
                 delivery_needed = "false",
                 amount_cents = (int)(request.Amount * 100),
                 currency = request.Currency,
+                merchant_order_id = $"{request.OrderId}_{request.Amount}_{request.Currency}_{request.PaymentMethod}",
+
+
                 items = new[] {
-                new {
-                    name = $"Order #{request.OrderId}",
-                    amount_cents = (int)(request.Amount * 100),
-                    description = "Jumia Clone Order",
-                    quantity = 1
-                }
+            new {
+                name = $"Order #{request.OrderId}",
+                amount_cents = (int)(request.Amount * 100),
+                description = "Jumia Clone Order",
+                quantity = 1
             }
+        }
             };
 
             var response = await _httpClient.PostAsJsonAsync("https://accept.paymob.com/api/ecommerce/orders", orderRequest);
             var json = await response.Content.ReadFromJsonAsync<JsonDocument>();
-            return json.RootElement.GetProperty("id").ToString();
+
+            Console.WriteLine("fffffffffffffffff", json);
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
+
+            if (!json.RootElement.TryGetProperty("id", out var idElement))
+                throw new Exception("Paymob order registration response did not contain 'id'.");
+
+            return idElement.ToString();
         }
 
         private async Task<string> GeneratePaymentKeyAsync(string token, string paymobOrderId, PaymentRequetsDto request)
@@ -167,29 +200,49 @@ namespace Jumia_Api.Services.Implementation
         {
             try
             {
+                Console.WriteLine("Validating callback payload: " + payload);
                 var json = JsonDocument.Parse(payload);
                 var root = json.RootElement;
 
-                // Paymob sends "obj" or "order" in callback payload
-                var success = root.GetProperty("success").GetBoolean();
-                if (!success) return false;
+                // ✅ Get success flag
+                bool success = root.TryGetProperty("success", out var successElement)
+                               && bool.TryParse(successElement.GetString(), out var isSuccess)
+                               && isSuccess;
 
-                var orderId = root.GetProperty("order").GetProperty("merchant_order_id").GetInt32(); // or order.id if you stored Paymob Order ID
+                // ✅ Extract order ID from merchant_order_id
+                if (!root.TryGetProperty("merchant_order_id", out var merchantIdElement))
+                    return false;
 
+                var merchantIdStr = merchantIdElement.GetString();
+                var parts = merchantIdStr?.Split('_');
+                if (parts == null || parts.Length == 0 || !int.TryParse(parts[0], out int orderId))
+                    return false;
+
+                // ✅ Load order
                 var order = await _unitOfWork.OrderRepo.GetByIdAsync(orderId);
                 if (order == null) return false;
 
-                // ✅ Mark the order as paid
-                order.Status = "Paid";
+                if (success)
+                {
+                    order.Status = "Paid";
+                    order.PaymentStatus = "Paid";
+                }
+                else
+                {
+                    _unitOfWork.OrderRepo.Delete(order.OrderId); // Ensure cascade delete is enabled
+                }
+                await _unitOfWork.CartRepo.ClearCartAsync(order.CustomerId); // Clear cart after payment
                 await _unitOfWork.SaveChangesAsync();
-
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine("Callback validation failed: " + ex.Message);
                 return false;
             }
         }
+
+
 
     }
 

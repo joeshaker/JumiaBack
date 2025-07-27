@@ -97,8 +97,9 @@ namespace Jumia_Api.Api.Controllers
             return Ok(subOrders);
         }
         [HttpGet("suborders/seller/{sellerId}")]
-        public async Task<ActionResult<IEnumerable<SubOrderDTO>>> GetSubOrdersBySellerId(int sellerId)
+        public async Task<ActionResult<IEnumerable<SubOrderDTO>>> GetSubOrdersBySellerId()
         {
+            var sellerId = GetCustomerId();
             var subOrders = await _orderService.GetSubOrdersBySellerIdAsync(sellerId);
             if (subOrders == null || !subOrders.Any())
                 return NotFound("No suborders found for the specified seller.");

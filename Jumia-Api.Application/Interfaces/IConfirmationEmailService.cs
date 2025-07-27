@@ -8,6 +8,6 @@ namespace Jumia_Api.Application.Interfaces
 {
     public interface IConfirmationEmailService
     {
-        public void SendConfirmationEmailAsync(string email, string token);
+        public void SendConfirmationEmailAsync(string email, string token,string status);
     }
 }

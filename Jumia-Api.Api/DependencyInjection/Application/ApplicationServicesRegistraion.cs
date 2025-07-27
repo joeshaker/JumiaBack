@@ -12,6 +12,7 @@ using Jumia_Api.Infrastructure.Presistence.UnitOfWork;
 using Jumia_Api.Services.Implementation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using X.Paymob.CashIn;
 
 namespace Jumia_Api.Api.DependencyInjection.Application
 {
@@ -40,7 +41,7 @@ namespace Jumia_Api.Api.DependencyInjection.Application
 
             services.AddMemoryCache();
             services.AddScoped<IOtpService, OtpService>();
-            services.AddScoped<IEmailService, EmailService>();
+            
             services.AddScoped<IUserService, UserService>();
 
             services.AddScoped<IAddressService, AddressService>();
@@ -52,6 +53,12 @@ namespace Jumia_Api.Api.DependencyInjection.Application
 
             services.AddScoped<IFileService, FileService>();
 
+            services.AddPaymobCashIn(conf =>
+            {
+                conf.ApiKey = configuration["Paymob:ApiKey"];
+                conf.Hmac = configuration["Paymob:HmacKey"];
+            });
+            
 
             services.AddHttpClient<IPaymentService,PaymentService>();
             services.AddScoped<IRatingService, RatingService>();
