@@ -20,5 +20,7 @@ namespace Jumia_Api.Application.Interfaces
         Task<IEnumerable<SubOrderDTO>> GetSubOrdersByOrderIdAsync(int orderId);
         Task<IEnumerable<SubOrderDTO>> GetSubOrdersBySellerIdAsync(int sellerId);
         Task<bool> CancelOrderTransactionAsync(int orderId);
+
+        Task<bool> UpdateOrderStatusAsync(int orderId, string status);
     }
 }
