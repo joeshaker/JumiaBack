@@ -250,6 +250,7 @@ namespace Jumia_Api.Services.Implementation
                     
                     Console.WriteLine($"Payment for Order {orderId} was unsuccessful. Initiating order cancellation and stock restoration.");
                     var cancellationSuccess = await _orderService.CancelOrderTransactionAsync(orderId);
+                    await _unitOfWork.OrderRepo.Delete(orderId);
 
                     if (!cancellationSuccess)
                     {

@@ -196,12 +196,14 @@ namespace Jumia_Api.Application.Services
 
             if (order.Status == "cancelled")
                 return false;
+            CancelOrderTransactionAsync(id);
 
             //if (order.Status == "shipped" || order.Status == "delivered")
             //    return false;
             var success = await _unitOfWork.OrderRepo.CancelOrderAsync(id, cancellationReason);
             if (!success)
                 return false;
+            
 
             await _unitOfWork.SaveChangesAsync();
             return true;
@@ -275,7 +277,7 @@ namespace Jumia_Api.Application.Services
                 }
 
                 // 3. Delete the order itself
-                _unitOfWork.OrderRepo.Delete(order.OrderId);
+                
 
                 // 4. Save all changes (stock updates + order deletion) in a single transaction
                 await _unitOfWork.SaveChangesAsync();
