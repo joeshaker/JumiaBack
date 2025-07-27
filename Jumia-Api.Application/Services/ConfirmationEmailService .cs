@@ -31,7 +31,7 @@ namespace Jumia_Api.Application.Services
                 if(status == "confirmation link")
                 {
                     message = $"https://yourapp.com/confirm?token={token}";
-                    htmlMessage = $"<p>Click the link to confirm your account: <a href='https://yourapp.com/confirm?token={token}'>Confirm Account</a></p>";
+                    htmlMessage = $"<p>Click the link to confirm your account: <a href='http://localhost:4200/auth/reset-password?token={token}'>Confirm Account</a></p>";
 
 
                 }
