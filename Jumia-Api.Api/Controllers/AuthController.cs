@@ -124,7 +124,6 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpDelete("logout")]
-        [Authorize]
         public IActionResult Logout()
         {
             Response.Cookies.Delete("JumiaAuthCookie");
@@ -160,6 +159,41 @@ namespace Jumia_Api.Api.Controllers
 
             return BadRequest(message);
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgetPasswordDto dto)
+        {
+            var result = await _authService.ForgetPasswordAsync(dto.Email);
+
+            if (!result.Successed)
+            {
+                return BadRequest(new 
+                { 
+                    result.Message
+                });
+            }
+
+            return Ok(new 
+            { 
+                result.Message,
+                ResetToken = result.Token
+            });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var result = await _authService.ResetPasswordAsync(dto);
+
+            if (!result.Successed)
+            {
+                return BadRequest(new { result.Message });
+            }
+
+            return Ok(new { result.Message });
+        }
+
+
 
 
     }
