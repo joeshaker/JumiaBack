@@ -50,11 +50,13 @@ namespace Jumia_Api.Services.Implementation
                 // 2. Use the generated OrderId to build PaymentRequestDto internally
                 var paymentRequest = new PaymentRequetsDto
                 {
+
                     Order = orderDto,
                     OrderId = newOrder.OrderId,
                     Amount = newOrder.FinalAmount,
                     Currency = "EGP",
                     PaymentMethod = newOrder.PaymentMethod
+
                 };
 
                 // 3. Continue Paymob flow
