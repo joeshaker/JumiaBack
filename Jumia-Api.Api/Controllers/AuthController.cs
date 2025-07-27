@@ -174,9 +174,10 @@ namespace Jumia_Api.Api.Controllers
             }
 
             return Ok(new 
-            { 
+            {   result.Successed,
                 result.Message,
-                ResetToken = result.Token
+                result.Token
+               
             });
         }
 
