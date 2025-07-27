@@ -150,11 +150,6 @@ namespace Jumia_Api.Api.Controllers
 
 
 
-
-
-
-
-
         [HttpPut("update")]
         public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductDto product)
         {

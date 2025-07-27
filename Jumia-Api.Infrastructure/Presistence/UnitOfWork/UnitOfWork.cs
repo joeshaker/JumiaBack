@@ -28,7 +28,6 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         private IVariantAttributeRepo? _variantAttributeRepo;
         private IRatingRepo? _ratingRepo;
 
-        private ISellerRepo _sellerRepo;
 
         private IsuborderRepo? _subOrderRepo;
 
@@ -74,8 +73,6 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
 
         public IWishlistItemRepo WishlistItemRepo => _wishlistItemRepo ?? new WishlistItemRepo(_context);
         public IWishlistRepo WishlistRepo => _wishlistRepo ?? new WishlistRepo(_context);
-
-        public ISellerRepo SellerRepo => _sellerRepo ?? new SellerRepo(_context);
 
         public IVariantRepo VariantRepo => _variantRepo ?? new VariantRepo(_context);
 

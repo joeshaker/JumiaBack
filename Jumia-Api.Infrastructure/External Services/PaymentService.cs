@@ -49,7 +49,7 @@ namespace Jumia_Api.Services.Implementation
                     TotalAmount = orderDto.TotalAmount,
                     DiscountAmount = orderDto.DiscountAmount,
                     ShippingFee = orderDto.ShippingFee,
-                    TaxAmount = orderDto.TaxAmount,
+                    TaxAmount = (decimal)orderDto.TaxAmount,
                     FinalAmount = orderDto.FinalAmount,
                     PaymentMethod = orderDto.PaymentMethod,
                     AffiliateId = orderDto.AffiliateId,
