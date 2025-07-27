@@ -60,6 +60,25 @@ namespace Jumia_Api.Api.Controllers
 
         }
 
+        [HttpGet("GetAllSellers")]
+        public async Task<IActionResult> GetAllSellers()
+        {
+            var sellers = await _sellerService.GetAll();
+            return Ok(sellers);
+        }
+
+        [HttpPatch("ToggleVerification/{sellerId}")]
+        public async Task<IActionResult> ToggleVerification(int sellerId)
+        {
+            var result = await _sellerService.IsVerified(sellerId);
+
+            if (result)
+                return Ok(new { Message = "Seller verification status updated successfully." });
+
+            return NotFound(new { Message = "Seller not found." });
+        }
+
+
         private void SetJwtCookie(string token)
         {
             var cookieOptions = new CookieOptions

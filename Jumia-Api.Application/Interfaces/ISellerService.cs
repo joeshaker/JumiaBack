@@ -11,6 +11,9 @@ namespace Jumia_Api.Application.Interfaces
 {
     public interface ISellerService
     {
+        Task<IEnumerable<SellerInfo>> GetAll();
+
+        Task<bool> IsVerified(int sellerId);
         Task<AuthResult> RegisterAsync(CreateSellerDto dto);
     }
 }

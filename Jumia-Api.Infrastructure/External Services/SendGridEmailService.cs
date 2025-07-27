@@ -6,15 +6,15 @@ using SendGrid.Helpers.Mail;
 
 namespace Jumia_Api.Infrastructure.External_Services
 {
-    public class SendGridEmailService
+    public class SendGridEmailService:IEmailService
     {
         
             private readonly SendGridClient _sendGridClient;
             private readonly EmailAddress _fromAddress;
             private readonly IConfiguration _configuration;
-            private readonly ILogger _logger;
+            private readonly ILogger<SendGridEmailService> _logger;
 
-            public SendGridEmailService(IConfiguration configuration, ILogger logger)
+            public SendGridEmailService(IConfiguration configuration, ILogger<SendGridEmailService> logger)
             {
                 _configuration = configuration;
 

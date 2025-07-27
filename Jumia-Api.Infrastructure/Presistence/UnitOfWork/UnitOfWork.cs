@@ -27,7 +27,10 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         private ISellerRepo? _sellerRepo;   
         private IVariantAttributeRepo? _variantAttributeRepo;
         private IRatingRepo? _ratingRepo;
+
+
         private IsuborderRepo? _subOrderRepo;
+
 
         private readonly Dictionary<Type, object> _repositories = new();
         private ICouponRepo? _couponRepo;
@@ -70,13 +73,13 @@ namespace Jumia_Api.Infrastructure.Presistence.UnitOfWork
         public IWishlistItemRepo WishlistItemRepo => _wishlistItemRepo ?? new WishlistItemRepo(_context);
         public IWishlistRepo WishlistRepo => _wishlistRepo ?? new WishlistRepo(_context);
 
-        public ISellerRepo SellerRepo => _sellerRepo ?? new SellerRepo(_context);
-
         public IVariantRepo VariantRepo => _variantRepo ?? new VariantRepo(_context);
 
         public IProductAttributeValueRepo ProductAttributeValueRepo => _productAttributeValueRepo ?? new ProductAttributeValueRepo(_context);
 
         public IVariantAttributeRepo VariantAttributeRepo => _variantAttributeRepo ?? new VariantAttributeRepo(_context);
+
+        public ISellerRepo SellerRepo => _sellerRepo ?? new SellerRepo(_context);
 
         public void Dispose()
         {

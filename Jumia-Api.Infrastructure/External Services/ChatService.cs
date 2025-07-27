@@ -1,26 +1,24 @@
 ﻿using Jumia_Api.Application.Dtos.ChatDTos;
 using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Domain.Interfaces.Repositories;
+using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Domain.Models;
 using Jumia_Api.Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+    
 namespace Jumia_Api.Infrastructure.External_Services
 {
     public class ChatService : IChatService
     {
         private readonly IChatRepository _chatRepository;
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ChatService(IChatRepository chatRepository, IHubContext<ChatHub> hubContext)
+        public ChatService(IChatRepository chatRepository, IHubContext<ChatHub> hubContext,IUnitOfWork unitOfWork)
         {
             _chatRepository = chatRepository;
             _hubContext = hubContext;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<ChatDto> CreateChatAsync(CreateChatDto createChatDto)
@@ -28,7 +26,7 @@ namespace Jumia_Api.Infrastructure.External_Services
             // Check if user already has an active chat
             var existingChat = await _chatRepository.GetByUserIdAsync(createChatDto.UserId);
             var existingChatFlag = existingChat?.FirstOrDefault(c => c.Status == ChatStatus.Active);
-            if (existingChat != null && existingChatFlag.Status == ChatStatus.Active)
+            if (existingChatFlag != null && existingChatFlag.Status == ChatStatus.Active)
             {
                 return MapToDto(existingChatFlag);
             }
@@ -39,7 +37,7 @@ namespace Jumia_Api.Infrastructure.External_Services
                 UserId = createChatDto.UserId,
                 UserName = createChatDto.UserName,
                 UserEmail = createChatDto.UserEmail,
-                Status = ChatStatus.Pending,
+                Status = ChatStatus.Active,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -62,6 +60,7 @@ namespace Jumia_Api.Infrastructure.External_Services
 
                 await _chatRepository.AddMessageAsync(initialMessage);
             }
+            
 
             // Notify admins about new chat
             await _hubContext.Clients.Group("Admins").SendAsync("NewChatCreated", MapToDto(createdChat));

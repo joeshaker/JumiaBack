@@ -32,6 +32,71 @@ namespace Jumia_Api.Application.Services
             _fileService = fileService;
         }
 
+        public async Task<IEnumerable<SellerInfo>> GetAll()
+        {
+            var sellers = await _unitOfWork.SellerRepo.GetAllAsync();
+            var sellerInfos = new List<SellerInfo>();
+
+            foreach (var seller in sellers)
+            {
+                var products = await _unitOfWork.ProductRepo.GetAvailableProductsBySellerId(seller.SellerId);
+                var productIds = products.Select(p => p.ProductId).ToList();
+
+                var subOrders = await _unitOfWork.SubOrderRepo.GetSubOrdersBySellerIdAsync(seller.SellerId);
+
+                // Optional debug log
+                foreach (var so in subOrders)
+                {
+                    Console.WriteLine($"SubOrder Id: {so.SubOrderId}, SellerId: {so.SellerId}, OrderItems: {(so.OrderItems == null ? "null" : so.OrderItems.Count.ToString())}");
+                }
+
+                var orderItems = subOrders
+                    .SelectMany(so => so.OrderItems ?? new List<OrderItem>())
+                    .Where(oi => productIds.Contains(oi.ProductId))
+                    .ToList();
+
+                var totalProductsSold = orderItems.Sum(oi => oi.Quantity);
+                var totalAmountSold = orderItems.Sum(oi => oi.Quantity * oi.PriceAtPurchase);
+
+                sellerInfos.Add(new SellerInfo
+                {
+                    SellerId = seller.SellerId,
+                    UserId = seller.UserId,
+                    BusinessName = seller.BusinessName,
+                    ImageUrl = seller.ImageUrl,
+                    BusinessDescription = seller.BusinessDescription,
+                    BusinessLogo = seller.BusinessLogo,
+                    IsVerified = seller.IsVerified,
+                    VerifiedAt = seller.VerifiedAt,
+                    Rating = seller.Rating,
+                    TotalProductsSold = totalProductsSold,
+                    TotalAmountSold = totalAmountSold
+                });
+            }
+
+            return sellerInfos;
+        }
+
+
+
+
+
+        public async Task<bool> IsVerified(int sellerId)
+        {
+           var seller =await _unitOfWork.SellerRepo.GetByIdAsync(sellerId);
+            if (seller == null)
+            {
+                return false; // Seller not found
+            }
+
+            seller.IsVerified = !seller.IsVerified; // Assuming you want to mark the seller as verified
+            seller.VerifiedAt = DateTime.UtcNow; // Set the verification date
+            await _unitOfWork.SaveChangesAsync();
+            return true; // Verification successful
+
+        }
+
+
         public async Task<AuthResult> RegisterAsync(CreateSellerDto dto)
         {
             if (dto.ConfirmPassword != dto.Password)

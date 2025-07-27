@@ -4,6 +4,9 @@ using Jumia_Api.Application.Interfaces;
 using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace Jumia_Api.Application.Services
 {
@@ -14,14 +17,24 @@ namespace Jumia_Api.Application.Services
         private readonly IOtpService _otpService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly RoleManager<IdentityRole> _roleManager;
+       private readonly IConfirmationEmailService _ConfirmationEmailService;
+        private IConfiguration _configuration;
+        private ILogger<AuthService> _logger;
 
-        public AuthService(IUserService userService, IJwtService jwtService, IOtpService otpService, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOfWork)
+
+
+        public AuthService(IUserService userService, IJwtService jwtService, IOtpService otpService, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOfWork, IEmailService emailService,
+            IConfiguration configuration, IConfirmationEmailService confirmationEmailService, ILogger<AuthService> logger)
+
         {
             _userService = userService;
             _jwtService = jwtService;
             _otpService = otpService;
             _roleManager = roleManager;
             _unitOfWork = unitOfWork;
+            _configuration = configuration;
+            _ConfirmationEmailService = confirmationEmailService;
+            _logger = logger;
         }
 
         public async Task<AuthResult> LoginAsync(LoginDTO dto)
@@ -179,6 +192,62 @@ namespace Jumia_Api.Application.Services
             return (false, $"Failed to create role: {errors}");
         }
 
-       
+        public async Task<AuthResult> ForgetPasswordAsync(string email)
+        {
+            var user = await _userService.FindByEmailAsync(email);
+            if(user == null)
+            {
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "User not Found"
+                };
+            }
+
+            var frontendUrl = _configuration.GetValue<string>("FrontendUrl"); 
+            var token = await _userService.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = WebUtility.UrlEncode(token);
+            Console.WriteLine(encodedToken);
+            _logger.LogWarning("Encoded Token: {EncodedToken}", encodedToken);
+            _ConfirmationEmailService.SendConfirmationEmailAsync(email, encodedToken, "confirmation link");
+
+
+            return new AuthResult
+            {
+                Successed = true,
+                Message = "Password reset link sent successfully",
+                Token = token
+            };
+            
+        }
+
+        public async Task<AuthResult> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _userService.FindByEmailAsync(resetPasswordDto.Email);
+            if (user == null) 
+            {
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "User not Found"
+                };
+            }
+            var decodedToken = WebUtility.UrlDecode(resetPasswordDto.Token);
+            var resetResult = await _userService.ResetPasswordAsync(resetPasswordDto.Email, decodedToken, resetPasswordDto.NewPassword);
+            if (!resetResult)
+            {
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "Invalid token or expired"
+                };
+            }
+            return new AuthResult
+            {
+                Successed = true,
+                Message = "Password reset successful"
+            };
+
+        }
     }
 }
