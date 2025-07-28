@@ -99,7 +99,7 @@ namespace Jumia_Api.Application.Services
 
         public async Task<string> AnswerProductQuestionAsync(string question, int? productId = null)
         {
-            IChatClient chatClient = CreateChatClient(uri, "mistral");
+            IChatClient chatClient = CreateChatClient(uri, "qwen3:0.6b");
 
             string context;
 
