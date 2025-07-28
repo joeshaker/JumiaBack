@@ -75,6 +75,10 @@ namespace Jumia_Api.Api.Controllers
         
         public async Task<IActionResult> CreateProduct([FromForm] AddProductDto product)
         { //Done only return type checks
+            foreach(var img in product.AdditionalImageUrls)
+            {
+                Console.WriteLine("here");
+            }
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -151,7 +155,7 @@ namespace Jumia_Api.Api.Controllers
 
 
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductDto product)
+        public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductDto product)
         {
             if (!ModelState.IsValid)
             {

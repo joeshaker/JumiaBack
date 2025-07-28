@@ -14,6 +14,7 @@ namespace Jumia_Api.Application.MappingProfiles
            
             CreateMap<AddProductDto, Product>()
       .ForMember(dest => dest.ProductImages, opt => opt.Ignore()) 
+
       .ForMember(dest => dest.productAttributeValues,
           opt => opt.MapFrom(src =>
               src.Attributes.SelectMany(a => a.Values.Select(v =>
@@ -58,7 +59,10 @@ namespace Jumia_Api.Application.MappingProfiles
                 .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Seller.BusinessName))
                 .ForMember(dest => dest.BusinessDescription, opt => opt.MapFrom(src => src.Seller.BusinessDescription)) 
                 .ForMember(dest=>dest.DiscountPercentage, opt =>
-                    opt.MapFrom(src => $"{src.ProductVariants.Min(v => v.DiscountPercentage)}% - {src.ProductVariants.Max(v => v.DiscountPercentage)}%")) 
+                    opt.MapFrom(src =>
+                    src.ProductVariants != null && src.ProductVariants.Any()
+                ? src.ProductVariants.Average(v => v.DiscountPercentage)
+                : src.DiscountPercentage)) 
                 .ForMember(dest => dest.AdditionalImageUrls, opt =>
                     opt.MapFrom(src => src.ProductImages.Select(pi => pi.ImageUrl)))
                 .ForMember(dest => dest.Attributes, opt =>
@@ -76,11 +80,13 @@ namespace Jumia_Api.Application.MappingProfiles
 
             //get
             CreateMap<Product, ProductsUIDto>()
-                .ForMember(dest=>dest.Variants,opt=>opt.MapFrom(src=>src.ProductVariants))
-                .ForMember(dest=>dest.ImageUrl,opt=>opt.MapFrom(src=>src.MainImageUrl))
+                .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.ProductVariants))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.MainImageUrl))
                 .ForMember(dest => dest.DiscountPercentage, opt =>
-                    opt.MapFrom(src => $"{src.ProductVariants.Min(v => v.DiscountPercentage)}% - {src.ProductVariants.Max(v => v.DiscountPercentage)}%"));
-
+                    opt.MapFrom(src =>
+                     src.ProductVariants != null && src.ProductVariants.Any()
+                ? src.ProductVariants.Average(v => v.DiscountPercentage)
+                : src.DiscountPercentage));
 
             //post
             CreateMap<ProductVariantDto, ProductVariant>()
