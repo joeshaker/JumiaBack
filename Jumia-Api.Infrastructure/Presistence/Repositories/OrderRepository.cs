@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Jumia_Api.Infrastructure.Presistence.Repositories
 {
-    public class OrderRepository:GenericRepo<Order>,IOrderRepository
+    public class OrderRepository : GenericRepo<Order>, IOrderRepository
     {
         public OrderRepository(JumiaDbContext context) : base(context)
         {
@@ -28,9 +28,9 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Order>> GetWithDetailsAsync(int id)
+        public  async Task<Order> GetWithDetailsAsync(int id)
         {
-            return await _dbSet
+            return await   _dbSet
                 .Where(o => o.OrderId == id).AsSplitQuery()
                 .Include(o => o.Customer)
                 .Include(o => o.Address)
@@ -39,7 +39,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                 .ThenInclude(so => so.OrderItems)
                 .ThenInclude(oi => oi.Product)
                 .AsNoTracking()
-                .ToListAsync();
+                .FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Order>> GetAllWithDetailsAsync()
@@ -62,6 +62,28 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
 
             order.Status = "cancelled";
             order.UpdatedAt = DateTime.UtcNow;
+            _dbSet.Update(order);
+            return true;
+        }
+
+        public async Task<bool> UpdateOrderStatus(int orderid, string stauts)
+        {
+            var order = await _dbSet.FirstOrDefaultAsync(o => o.OrderId == orderid);
+            if (order ==null)
+            {
+                return false;
+            }
+            order.Status = stauts.ToLower();
+            var DeliverdStatus = "Delivered";
+            if (stauts == DeliverdStatus.ToLower())
+            {
+                order.PaymentStatus = "paid";
+            }
+            else if (stauts == "Cancelled")
+            {
+                order.PaymentStatus = "refunded";
+            }
+                order.UpdatedAt = DateTime.UtcNow;
             _dbSet.Update(order);
             return true;
         }

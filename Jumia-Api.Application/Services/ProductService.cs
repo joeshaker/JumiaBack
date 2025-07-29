@@ -211,7 +211,7 @@ namespace Jumia_Api.Application.Services
        
             var product = _mapper.Map<Product>(request);
 
-            product.StockQuantity = request.Variants.Sum(v => v.StockQuantity);
+            product.StockQuantity = request.StockQuantity;
             product.ApprovalStatus = "pending";
             product.CreatedAt = DateTime.UtcNow;
             product.UpdatedAt = DateTime.UtcNow;
@@ -398,7 +398,7 @@ namespace Jumia_Api.Application.Services
             existingProduct.CategoryId = request.CategoryId; // Update category if allowed
             existingProduct.ApprovalStatus = "pending"; // Reset approval status on update
             existingProduct.UpdatedAt = DateTime.UtcNow;
-
+            existingProduct.StockQuantity = request.StockQuantity;
             // 3. Handle Main Image Update
             if (request.MainImageUrl != null) // A new file was uploaded
             {
@@ -419,7 +419,7 @@ namespace Jumia_Api.Application.Services
             // A common strategy for collection updates: clear existing and re-add from DTO.
             // This assumes your DTO sends ALL current additional images (both old retained and new ones).
             // If your frontend only sends NEW files, this logic needs adjustment (e.g., compare lists).
-            if (request.AdditionalImageUrls != null)
+            if (request.AdditionalImageUrls != null && request.AdditionalImageUrls.Count > 0)
             {
                 // Clear existing additional images from the product
                 existingProduct.ProductImages.Clear();
@@ -442,7 +442,7 @@ namespace Jumia_Api.Application.Services
             // 5. Handle Product Attributes (Root level attributes)
             // Similar to additional images, a common approach for 1:Many relationships is to delete existing and re-add.
             // This assumes your frontend sends ALL required product attributes, even if unchanged.
-            if (request.Attributes != null)
+            if (request.Attributes != null && request.Attributes.Count > 0)
             {
                 existingProduct.productAttributeValues.Clear(); // Clear existing product attribute values
 
@@ -571,9 +571,6 @@ namespace Jumia_Api.Application.Services
                     }
                 }
             }
-
-            // 7. Recalculate Stock Quantity (if needed, based on variants)
-            existingProduct.StockQuantity = existingProduct.ProductVariants.Sum(v => v.StockQuantity);
 
             // 8. Mark product as modified and save changes
             _unitOfWork.ProductRepo.Update(existingProduct); // Assuming a generic Update method

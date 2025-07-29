@@ -9,7 +9,7 @@ namespace Jumia_Api.Application.Dtos.PaymentDtos
 {
     public class PaymentRequetsDto
     {
-        public CreateOrderDTO Order { get; set; }
+        public OrderDTO Order { get; set; }
         public int OrderId { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "EGP";
