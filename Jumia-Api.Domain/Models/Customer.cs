@@ -19,6 +19,9 @@ namespace Jumia_Api.Domain.Models
 
         public DateTime? LastLogin { get; set; }
 
+        public bool IsBlocked { get; set; }
+
+
         // Navigation property
         public AppUser User { get; set; }
     }

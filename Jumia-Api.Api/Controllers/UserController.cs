@@ -3,6 +3,7 @@ using Jumia_Api.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OllamaSharp.Models.Chat;
 using System.Security.Claims;
 
 namespace Jumia_Api.Api.Controllers
@@ -36,8 +37,15 @@ namespace Jumia_Api.Api.Controllers
         [HttpGet("customers")]
         public async Task<ActionResult<IEnumerable<UserProfileDto>>> GetAllCustomers()
         {
-            var customers = await _userService.GetAllCustomersAsync();
-            return Ok(customers);
+            try
+            {
+                var customers = await _userService.GetAllCustomersAsync();
+                return Ok(customers);
+            }
+            catch(KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [HttpGet("sellers")]
@@ -45,6 +53,26 @@ namespace Jumia_Api.Api.Controllers
         {
             var sellers = await _userService.GetAllSellersAsync();
             return Ok(sellers);
+        }
+
+        [HttpGet("admin")]
+        public async Task<ActionResult<IEnumerable<UserProfileDto>>> GetAdmin()
+        {
+            var admin = await _userService.GetAllAdminAsync();
+            return Ok(admin);
+        }
+
+        [HttpPost("toggle-block-status/{customerId}")]
+        public async Task<IActionResult> ToggleBlockStatus(int customerId)
+        {
+            var isBlocked = await _userService.ToogleBlockStatusAsync(customerId);
+
+            if (isBlocked)
+            {
+                return Ok(new { Message="Customer has been blocked.", isBlocked });
+            }
+
+            return Ok(new { Message= "Customer has been unblocked.", isBlocked });
         }
 
     }

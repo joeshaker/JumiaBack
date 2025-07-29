@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Jumia_Api.Application.Dtos.CustomerDtos;
 
 namespace Jumia_Api.Application.Services
 {
@@ -123,18 +124,12 @@ namespace Jumia_Api.Application.Services
 
         }
 
-        public async Task<IEnumerable<UserProfileDto>> GetAllCustomersAsync()
+        public async Task<IEnumerable<CustomerDTO>> GetAllCustomersAsync()
         {
-            var customerRole = "customer";
-            var role = await _roleManager.FindByNameAsync(customerRole);
-            if(role == null)
-            {
-                throw new KeyNotFoundException($"Role {customerRole} not found.");
-            }
+          var customers =  await _unitOfWork.CustomerRepo.GetAllCustomersAsync();
 
-            var userInRole = await _userManager.GetUsersInRoleAsync(customerRole);
-
-            return userInRole.Select(user => _mapper.Map<UserProfileDto>(user));
+            var customersDto = _mapper.Map<IEnumerable<CustomerDTO>>(customers);
+            return customersDto;
 
         }
 
@@ -153,6 +148,21 @@ namespace Jumia_Api.Application.Services
 
         }
 
+        public async Task<IEnumerable<UserProfileDto>> GetAllAdminAsync()
+        {
+            var adminRole = "admin";
+            var role = await _roleManager.FindByNameAsync(adminRole);
+            if (role == null)
+            {
+                throw new KeyNotFoundException($"Role {adminRole} not found.");
+            }
+
+            var userInRole = await _userManager.GetUsersInRoleAsync(adminRole);
+
+            return userInRole.Select(user => _mapper.Map<UserProfileDto>(user));
+
+        }
+
         public async Task<string> GeneratePasswordResetTokenAsync(AppUser user)
         {
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -165,6 +175,14 @@ namespace Jumia_Api.Application.Services
             var user = await _userManager.FindByEmailAsync(email);
             var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
             return result.Succeeded;
+        }
+
+
+        public async Task<bool> ToogleBlockStatusAsync(int customerId)
+        {
+            var isBlocked = await _unitOfWork.CustomerRepo.ToggleBlockStatusAsync(customerId);
+            
+            return isBlocked;
         }
     }
 }
