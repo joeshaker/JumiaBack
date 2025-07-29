@@ -151,7 +151,7 @@ namespace Jumia_Api.Api.Controllers
 
 
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductDto product)
+        public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductDto product)
         {
             if (!ModelState.IsValid)
             {

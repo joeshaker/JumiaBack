@@ -30,8 +30,13 @@ namespace Jumia_Api.Application.Services
                 }
                 if(status == "confirmation link")
                 {
-                    message = $"https://yourapp.com/confirm?token={token}";
-                    htmlMessage = $"<p>Click the link to confirm your account: <a href='https://yourapp.com/confirm?token={token}'>Confirm Account</a></p>";
+                    message = $"http://localhost:4200/auth/reset-password?email={email}&token={token}"; ;
+                    htmlMessage  = $@"
+                                    <p>Hello,</p>
+                                    <p>You requested to reset your password. Click the link below:</p>
+                                    <p><a href=""{message}"">Reset Password</a></p>
+                                    <p>If you didn’t request this, just ignore this email.</p>
+                                    "; 
 
 
                 }

@@ -24,8 +24,9 @@ namespace Jumia_Api.Services.Implementation
         private readonly string _iframeId;
         private readonly UserManager<AppUser> _userManager;
         private IMapper _mapper;
+        private IOrderService _orderService;
 
-        public PaymentService(IMapper mapper,HttpClient httpClient, IConfiguration config, IUnitOfWork unitOfWork,UserManager<AppUser> userManager)
+        public PaymentService(IMapper mapper, HttpClient httpClient, IConfiguration config, IUnitOfWork unitOfWork, UserManager<AppUser> userManager, IOrderService orderService)
         {
             _httpClient = httpClient;
             _mapper = mapper;
@@ -35,27 +36,34 @@ namespace Jumia_Api.Services.Implementation
             _integrationId = _config["Paymob:IntegrationId"];
             _iframeId = _config["Paymob:CardIframeId"];
             _userManager = userManager;
+            _orderService = orderService;
         }
 
         public async Task<PaymentResponseDto> InitiatePaymentAsync(CreateOrderDTO orderDto)
         {
             try
             {
+                var orderResult = await _orderService.CreateOrderAsync(orderDto);
                 // 1. Map and save order with suborders + items
-                var newOrder = _mapper.Map<Order>(orderDto);
+                if (!orderResult.Success)
+                {
+                    return new PaymentResponseDto
+                    {
+                        Success = false,
+                        Message = orderResult.ErrorMessage,
+                        ErrorDetails = string.Join("; ", orderResult.ErrorDetails.Select(kv => $"{kv.Key}: {kv.Value}")),
+                    };
+                }
 
-                await _unitOfWork.OrderRepo.AddAsync(newOrder);
-                await _unitOfWork.SaveChangesAsync(); // OrderId is now generated
-
-                // 2. Use the generated OrderId to build PaymentRequestDto internally
+               
                 var paymentRequest = new PaymentRequetsDto
                 {
 
-                    Order = orderDto,
-                    OrderId = newOrder.OrderId,
-                    Amount = newOrder.FinalAmount,
+                    Order = orderResult.Order,
+                    OrderId = orderResult.Order.OrderId,
+                    Amount = orderResult.Order.FinalAmount,
                     Currency = "EGP",
-                    PaymentMethod = newOrder.PaymentMethod
+                    PaymentMethod = orderResult.Order.PaymentMethod
 
                 };
 
@@ -190,11 +198,7 @@ namespace Jumia_Api.Services.Implementation
             };
         }
 
-        //public async Task<bool> ValidatePaymentCallback(string payload)
-        //{
-        //    // TODO: Add actual validation logic later
-        //    return true;
-        //}
+       
 
         public async Task<bool> ValidatePaymentCallback(string payload)
         {
@@ -204,46 +208,78 @@ namespace Jumia_Api.Services.Implementation
                 var json = JsonDocument.Parse(payload);
                 var root = json.RootElement;
 
-                // ✅ Get success flag
+               
+
                 bool success = root.TryGetProperty("success", out var successElement)
                                && bool.TryParse(successElement.GetString(), out var isSuccess)
                                && isSuccess;
 
-                // ✅ Extract order ID from merchant_order_id
                 if (!root.TryGetProperty("merchant_order_id", out var merchantIdElement))
+                {
+                    Console.WriteLine("Callback: merchant_order_id not found.");
                     return false;
+                }
 
                 var merchantIdStr = merchantIdElement.GetString();
                 var parts = merchantIdStr?.Split('_');
                 if (parts == null || parts.Length == 0 || !int.TryParse(parts[0], out int orderId))
+                {
+                    Console.WriteLine($"Callback: Could not parse orderId from merchant_order_id: {merchantIdStr}");
                     return false;
+                }
 
-                // ✅ Load order
-                var order = await _unitOfWork.OrderRepo.GetByIdAsync(orderId);
-                if (order == null) return false;
+                
+                var orderForCartClear = await _unitOfWork.OrderRepo.GetByIdAsync(orderId);
+                if (orderForCartClear == null)
+                {
+                    Console.WriteLine($"Callback: Order with ID {orderId} not found in DB, cannot clear cart.");
+                    return false; 
+                }
+
 
                 if (success)
                 {
-                    order.Status = "Paid";
-                    order.PaymentStatus = "Paid";
+                    
+                   
+                    orderForCartClear.PaymentStatus = "Paid";
+                    Console.WriteLine($"Order {orderId} successfully paid. Status updated.");
+                    await _unitOfWork.SaveChangesAsync(); 
                 }
                 else
                 {
-                    _unitOfWork.OrderRepo.Delete(order.OrderId); // Ensure cascade delete is enabled
+                    
+                    Console.WriteLine($"Payment for Order {orderId} was unsuccessful. Initiating order cancellation and stock restoration.");
+                    var cancellationSuccess = await _orderService.CancelOrderTransactionAsync(orderId);
+                    await _unitOfWork.OrderRepo.Delete(orderId);
+
+                    if (!cancellationSuccess)
+                    {
+                        Console.WriteLine($"CRITICAL ERROR: Failed to cancel order {orderId} and/or restore stock after unsuccessful payment. Manual intervention may be required.");
+                        
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Order {orderId} successfully cancelled and stock restored due to failed payment.");
+                    }
+                  
                 }
-                await _unitOfWork.CartRepo.ClearCartAsync(order.CustomerId); // Clear cart after payment
+
+                await _unitOfWork.CartRepo.ClearCartAsync(orderForCartClear.CustomerId);
+               
                 await _unitOfWork.SaveChangesAsync();
+
                 return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Callback validation failed: " + ex.Message);
-                return false;
+                                return false; 
             }
         }
-
-
-
     }
 
+
+
 }
+
+

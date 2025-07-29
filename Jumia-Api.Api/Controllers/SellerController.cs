@@ -78,6 +78,18 @@ namespace Jumia_Api.Api.Controllers
             return NotFound(new { Message = "Seller not found." });
         }
 
+        [HttpGet("GetSellerById/{sellerId}")]
+
+        public async Task<IActionResult> GetSellerById(int sellerId)
+        {
+            var seller = await _sellerService.GetSellerById(sellerId);
+            if (seller == null || !seller.Any())
+            {
+                return NotFound(new { Message = "Seller not found." });
+            }
+            return Ok(seller);
+        }
+
 
         private void SetJwtCookie(string token)
         {

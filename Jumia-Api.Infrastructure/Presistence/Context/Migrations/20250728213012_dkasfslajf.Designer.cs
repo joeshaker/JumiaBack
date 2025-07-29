@@ -4,6 +4,7 @@ using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jumia_Api.Infrastructure.Context.Migrations
 {
     [DbContext(typeof(JumiaDbContext))]
-    partial class JumiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250728213012_dkasfslajf")]
+    partial class dkasfslajf
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -623,9 +626,6 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CustomerId"));
-
-                    b.Property<bool>("IsBlocked")
-                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastLogin")
                         .HasColumnType("datetime2");

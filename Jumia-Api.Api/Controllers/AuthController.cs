@@ -127,6 +127,7 @@ namespace Jumia_Api.Api.Controllers
         public IActionResult Logout()
         {
             Response.Cookies.Delete("JumiaAuthCookie");
+            Response.Cookies.Delete("UserInfo");
             return Ok(new { message = "Logged out successfully" });
 
         }
@@ -174,9 +175,10 @@ namespace Jumia_Api.Api.Controllers
             }
 
             return Ok(new 
-            { 
+            {   result.Successed,
                 result.Message,
-                ResetToken = result.Token
+                result.Token
+               
             });
         }
 

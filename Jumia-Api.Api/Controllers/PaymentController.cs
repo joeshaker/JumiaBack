@@ -29,19 +29,13 @@ namespace Jumia_Api.Controllers
         [HttpGet("callback")]
         public async Task<IActionResult> HandleCallback([FromQuery] Dictionary<string, string> queryParams)
         {
-            // Optional: Log or debug query parameters
-            //foreach (var param in queryParams)
-            //{
-            //    Console.WriteLine($"{param.Key} = {param.Value}");
-            //}
-
-            // Example: pass the dictionary as a stringified payload if needed
+            
             var success = await _paymentService.ValidatePaymentCallback(System.Text.Json.JsonSerializer.Serialize(queryParams));
 
             if (!success)
-                return BadRequest("Invalid callback");
+                return Redirect("http://localhost:4200/cart");
 
-            return Ok("Callback processed");
+            return Redirect("http://localhost:4200/user/orders");
         }
 
     }

@@ -5,6 +5,8 @@ using Jumia_Api.Domain.Interfaces.UnitOfWork;
 using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace Jumia_Api.Application.Services
 {
@@ -15,13 +17,14 @@ namespace Jumia_Api.Application.Services
         private readonly IOtpService _otpService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IEmailService _emailService;
+       private readonly IConfirmationEmailService _ConfirmationEmailService;
         private IConfiguration _configuration;
+        private ILogger<AuthService> _logger;
 
 
 
-        public AuthService(IUserService userService, IJwtService jwtService, IOtpService otpService, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOfWork,IEmailService emailService,
-            IConfiguration configuration)
+        public AuthService(IUserService userService, IJwtService jwtService, IOtpService otpService, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOfWork, IEmailService emailService,
+            IConfiguration configuration, IConfirmationEmailService confirmationEmailService, ILogger<AuthService> logger)
 
         {
             _userService = userService;
@@ -29,9 +32,9 @@ namespace Jumia_Api.Application.Services
             _otpService = otpService;
             _roleManager = roleManager;
             _unitOfWork = unitOfWork;
-            _emailService = emailService;
             _configuration = configuration;
-
+            _ConfirmationEmailService = confirmationEmailService;
+            _logger = logger;
         }
 
         public async Task<AuthResult> LoginAsync(LoginDTO dto)
@@ -203,9 +206,11 @@ namespace Jumia_Api.Application.Services
 
             var frontendUrl = _configuration.GetValue<string>("FrontendUrl"); 
             var token = await _userService.GeneratePasswordResetTokenAsync(user);
-            var resetLink = $"{frontendUrl}/reset-password?token={token}";
+            var encodedToken = WebUtility.UrlEncode(token);
+            Console.WriteLine(encodedToken);
+            _logger.LogWarning("Encoded Token: {EncodedToken}", encodedToken);
+            _ConfirmationEmailService.SendConfirmationEmailAsync(email, encodedToken, "confirmation link");
 
-            await _emailService.SendEmailAsync(email, "Password Reset", $"Click here to reset your password: {resetLink}");
 
             return new AuthResult
             {
@@ -227,8 +232,8 @@ namespace Jumia_Api.Application.Services
                     Message = "User not Found"
                 };
             }
-
-            var resetResult = await _userService.ResetPasswordAsync(resetPasswordDto.Email, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+            var decodedToken = WebUtility.UrlDecode(resetPasswordDto.Token);
+            var resetResult = await _userService.ResetPasswordAsync(resetPasswordDto.Email, decodedToken, resetPasswordDto.NewPassword);
             if (!resetResult)
             {
                 return new AuthResult
