@@ -11,26 +11,18 @@ namespace Jumia_Api.Application.Dtos.SellerDtos
     public class SellerInfo
     {
         public int SellerId { get; set; }
-
-        [Required]
-        [ForeignKey("User")]
         public string UserId { get; set; }
-
-        [Required]
-        [MaxLength(255)]
         public string BusinessName { get; set; }
-
-        public string BusinessDescription { get; set; }
-
-        [MaxLength(255)]
-        public string BusinessLogo { get; set; }
-
-        public bool IsVerified { get; set; } = false;
-
+        public string? ImageUrl { get; set; }
+        public string? BusinessDescription { get; set; }
+        public string? BusinessLogo { get; set; }
+        public bool IsVerified { get; set; }
         public DateTime? VerifiedAt { get; set; }
+        public double? Rating { get; set; }
 
-        public double Rating { get; set; } = 0;
-
-        public string ImageUrl { get; set; }
+        // NEW
+        public int TotalProductsSold { get; set; }
+        public decimal TotalAmountSold { get; set; }
     }
+
 }

@@ -18,7 +18,11 @@ namespace Jumia_Api.Application.Services
         private readonly IEmailService _emailService;
         private IConfiguration _configuration;
 
-        public AuthService(IUserService userService, IJwtService jwtService, IOtpService otpService, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOfWork, IEmailService emailService, IConfiguration configuration)
+
+
+        public AuthService(IUserService userService, IJwtService jwtService, IOtpService otpService, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOfWork,IEmailService emailService,
+            IConfiguration configuration)
+
         {
             _userService = userService;
             _jwtService = jwtService;
@@ -27,6 +31,7 @@ namespace Jumia_Api.Application.Services
             _unitOfWork = unitOfWork;
             _emailService = emailService;
             _configuration = configuration;
+
         }
 
         public async Task<AuthResult> LoginAsync(LoginDTO dto)
