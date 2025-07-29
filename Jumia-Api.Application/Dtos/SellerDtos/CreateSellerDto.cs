@@ -23,12 +23,12 @@ namespace Jumia_Api.Application.Dtos.SellerDtos
         public string ConfirmPassword { get; set; }
 
         [Required]
-        [StringLength(50)]
+        [MaxLength(50)]
 
         public string FirstName { get; set; }
 
         [Required]
-        [StringLength(50)]
+        [MaxLength(50)]
 
         public string LastName { get; set; }
 
@@ -46,7 +46,7 @@ namespace Jumia_Api.Application.Dtos.SellerDtos
 
         public string BusinessDescription { get; set; }
 
-        [Required]
+     
         public IFormFile BusinessLogo { get; set; }
 
         [Required]
