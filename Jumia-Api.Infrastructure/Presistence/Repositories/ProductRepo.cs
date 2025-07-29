@@ -48,8 +48,15 @@ namespace Jumia_Api.Infrastructure.Presistence.Repositories
                     string attributeName = filter.Key;
                     List<string> attributeValues = filter.Value.Split(',').ToList();
 
-                    query = query.Where(p => p.productAttributeValues
-                        .Any(av => av.ProductAttribute.Name == attributeName && attributeValues.Contains(av.Value)));
+                    query = query.Where(p =>
+                                     p.productAttributeValues.Any(av =>
+                                         av.ProductAttribute.Name == attributeName &&
+                                         attributeValues.Contains(av.Value))
+                                     ||
+                                     p.ProductVariants.Any(v =>
+                                         v.Attributes.Any(va =>
+                                             va.AttributeName == attributeName &&
+                                              attributeValues.Contains(va.AttributeValue))) );
                 }
 
             }
