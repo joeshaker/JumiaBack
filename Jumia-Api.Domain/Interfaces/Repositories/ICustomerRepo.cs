@@ -10,5 +10,8 @@ namespace Jumia_Api.Domain.Interfaces.Repositories
     public interface ICustomerRepo :IGenericRepo<Customer>
     {
         public Task<Customer?> GetCustomerByUserIdAsync(string userId);
+        public Task<bool> ToggleBlockStatusAsync(int customerId);
+
+        public Task<IEnumerable<Customer>> GetAllCustomersAsync();
     }
 }

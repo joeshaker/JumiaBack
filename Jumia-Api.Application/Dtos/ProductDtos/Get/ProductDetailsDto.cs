@@ -17,7 +17,8 @@ namespace Jumia_Api.Application.Dtos.ProductDtos.Get
         public int CategoryId { get; set; }
         public string Description { get; set; }
         public decimal BasePrice { get; set; }
-        public string DiscountPercentage { get; set; }
+        public float DiscountPercentage { get; set; }
+        public int StockQuantity { get; set; }
         public bool IsAvailable { get; set; }
         public string MainImageUrl { get; set; }
         public List<string> AdditionalImageUrls { get; set; }

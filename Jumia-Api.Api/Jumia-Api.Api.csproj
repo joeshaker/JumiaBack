@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Jumia_Api.Api</RootNamespace>
-    <UserSecretsId>482a3113-3df1-4f19-bbd9-0bd671bb27a2</UserSecretsId>
+    <UserSecretsId>61519a5f-0bc0-4b2e-98ec-ac7bc0ccbfbc</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
