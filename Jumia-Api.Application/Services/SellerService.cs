@@ -158,14 +158,23 @@ namespace Jumia_Api.Application.Services
 
             var imageUrl = await _fileService.SaveFileAsync(dto.Image, "sellers");
 
+            if (!_fileService.IsValidImage(dto.BusinessLogo))
+            {
+                return new AuthResult
+                {
+                    Successed = false,
+                    Message = "Invalid image file. Allowed formats: jpg, png, gif, etc. Max size: 10MB."
+                };
+            }
 
+            var bussinessLogoUrl = await _fileService.SaveFileAsync(dto.BusinessLogo, "sellers/logos");
             var seller = new Seller
             {
                 UserId = user.Id,
                 BusinessName = $"{dto.FirstName} {dto.LastName}", // You may add BusinessName to the DTO
                 ImageUrl = imageUrl,
                 BusinessDescription=dto.BusinessDescription,
-                BusinessLogo=dto.BusinessLogo
+                BusinessLogo=bussinessLogoUrl
             };
 
             await _unitOfWork.Repository<Seller>().AddAsync(seller);
