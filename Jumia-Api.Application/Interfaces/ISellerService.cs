@@ -15,5 +15,7 @@ namespace Jumia_Api.Application.Interfaces
 
         Task<bool> IsVerified(int sellerId);
         Task<AuthResult> RegisterAsync(CreateSellerDto dto);
+
+        Task<IEnumerable<SellerInfo>> GetSellerById(int sellerId);
     }
 }
