@@ -17,13 +17,12 @@ namespace Jumia_Api.Domain.Models
         [ForeignKey("ProductVariant")]
         public int VariantId { get; set; }
 
-        [Required]
         [MaxLength(50)]
-        public string AttributeName { get; set; }
+        public string? AttributeName { get; set; }
 
-        [Required]
+      
         [MaxLength(100)]
-        public string AttributeValue { get; set; }
+        public string? AttributeValue { get; set; }
 
         // Navigation property
         public ProductVariant ProductVariant { get; set; }
