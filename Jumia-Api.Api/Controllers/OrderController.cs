@@ -87,6 +87,15 @@ namespace Jumia_Api.Api.Controllers
 
             return NoContent();
         }
+        [HttpPut("{orderId}/UpdateStatus")]
+
+        public async Task<IActionResult> UpdateOrderStatus(int orderId , string status)
+        {
+            var success = await _orderService.UpdateOrderStatusAsync(orderId, status.ToLower());
+            if (!success)
+                return NotFound("Order not found or status update failed.");
+            return Ok("Status Updated Successfully");
+        }
 
         [HttpGet("current-customer")]
         public async Task<ActionResult<IEnumerable<OrderDTO>>> GetCurrentCustomerOrders()
@@ -106,7 +115,7 @@ namespace Jumia_Api.Api.Controllers
                 return NotFound("No suborders found for the specified order.");
             return Ok(subOrders);
         }
-        [HttpGet("suborders/seller/{sellerId}")]
+        [HttpGet("suborders/seller")]
         public async Task<ActionResult<IEnumerable<SubOrderDTO>>> GetSubOrdersBySellerId()
         {
             var sellerId = GetCustomerId();

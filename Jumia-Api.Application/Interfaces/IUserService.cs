@@ -1,7 +1,7 @@
 
 ﻿using Jumia_Api.Application.Dtos.AuthDtos;
-
-﻿using Jumia_Api.Application.Dtos.UserDtos;
+using Jumia_Api.Application.Dtos.CustomerDtos;
+using Jumia_Api.Application.Dtos.UserDtos;
 
 using Jumia_Api.Domain.Models;
 using Microsoft.AspNetCore.Identity;
@@ -30,13 +30,17 @@ namespace Jumia_Api.Application.Interfaces
         public Task<string?> GetUserRoleAsync(AppUser user);
         public Task AddUserToRoleAsync(AppUser user, string role);
 
-        public Task<IEnumerable<UserProfileDto>> GetAllCustomersAsync();
+        public Task<IEnumerable<CustomerDTO>> GetAllCustomersAsync();
 
         public Task<IEnumerable<UserProfileDto>> GetAllSellersAsync();
 
         public Task<string> GeneratePasswordResetTokenAsync(AppUser user);
 
         public Task<bool> ResetPasswordAsync(string email, string token, string newPassword);
+
+        public Task<bool> ToogleBlockStatusAsync(int customerId);
+
+        public Task<IEnumerable<UserProfileDto>> GetAllAdminAsync();
 
 
     }

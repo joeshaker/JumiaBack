@@ -18,5 +18,8 @@ namespace Jumia_Api.Domain.Models
         public string Gender { get; set; }
 
 
+        //public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+
     }
 }

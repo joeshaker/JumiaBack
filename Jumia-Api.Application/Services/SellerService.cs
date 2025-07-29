@@ -77,9 +77,59 @@ namespace Jumia_Api.Application.Services
             return sellerInfos;
         }
 
+        public async Task<IEnumerable<SellerInfo>> GetSellerById(int sellerId)
+        {
+            var seller = await _unitOfWork.SellerRepo.GetByIdAsync(sellerId);
+            if (seller == null)
+            {
+                return null; // Seller not found
+            }
 
+            var User = await _userService.GetUserByIdAsync(seller.UserId);
+            if (User == null)
+            {
+                return null; // User not found
+            }
+            var products = await _unitOfWork.ProductRepo.GetAvailableProductsBySellerId(sellerId);
+            var productIds = products.Select(p => p.ProductId).ToList();
 
+            var subOrders = await _unitOfWork.SubOrderRepo.GetSubOrdersBySellerIdAsync(sellerId);
 
+            // Optional debug log
+            foreach (var so in subOrders)
+            {
+                Console.WriteLine($"SubOrder Id: {so.SubOrderId}, SellerId: {so.SellerId}, OrderItems: {(so.OrderItems == null ? "null" : so.OrderItems.Count.ToString())}");
+            }
+
+            var orderItems = subOrders
+                .SelectMany(so => so.OrderItems ?? new List<OrderItem>())
+                .Where(oi => productIds.Contains(oi.ProductId))
+                .ToList();
+
+            var totalProductsSold = orderItems.Sum(oi => oi.Quantity);
+            var totalAmountSold = orderItems.Sum(oi => oi.Quantity * oi.PriceAtPurchase);
+
+            return new List<SellerInfo>
+            {
+                new SellerInfo
+                {
+                    SellerId = seller.SellerId,
+                    UserId = seller.UserId,
+                    BusinessName = seller.BusinessName,
+                    ImageUrl = seller.ImageUrl,
+                    BusinessDescription = seller.BusinessDescription,
+                    BusinessLogo = seller.BusinessLogo,
+                    IsVerified = seller.IsVerified,
+                    VerifiedAt = seller.VerifiedAt,
+                    Rating = seller.Rating,
+                    TotalProductsSold = totalProductsSold,
+                    TotalAmountSold = totalAmountSold,
+                    SellerName = $"{User.FirstName} {User.LastName}",
+                    Email = User.Email
+                }
+            };
+
+        }
 
         public async Task<bool> IsVerified(int sellerId)
         {
@@ -171,7 +221,7 @@ namespace Jumia_Api.Application.Services
             var seller = new Seller
             {
                 UserId = user.Id,
-                BusinessName = $"{dto.FirstName} {dto.LastName}", // You may add BusinessName to the DTO
+                BusinessName = dto.BusinessName, // You may add BusinessName to the DTO
                 ImageUrl = imageUrl,
                 BusinessDescription=dto.BusinessDescription,
                 BusinessLogo=bussinessLogoUrl

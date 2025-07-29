@@ -42,6 +42,8 @@ namespace Jumia_Api.Application.Dtos.SellerDtos
 
         public string Gender { get; set; }
 
+        public string BusinessName { get; set; }
+
         public string BusinessDescription { get; set; }
 
      
