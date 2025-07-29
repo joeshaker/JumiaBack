@@ -213,20 +213,18 @@ namespace Jumia_Api.Application.Services
                 return new AuthResult
                 {
                     Successed = false,
-                    Message = "Invalid business logo file. Allowed formats: jpg, png, gif, etc. Max size: 10MB."
+                    Message = "Invalid image file. Allowed formats: jpg, png, gif, etc. Max size: 10MB."
                 };
             }
 
-            var businessLogoUrl = await _fileService.SaveFileAsync(dto.BusinessLogo, "seller/business-logos");
-
-
+            var bussinessLogoUrl = await _fileService.SaveFileAsync(dto.BusinessLogo, "sellers/logos");
             var seller = new Seller
             {
                 UserId = user.Id,
                 BusinessName = dto.BusinessName, // You may add BusinessName to the DTO
                 ImageUrl = imageUrl,
                 BusinessDescription=dto.BusinessDescription,
-                BusinessLogo=businessLogoUrl
+                BusinessLogo=bussinessLogoUrl
             };
 
             await _unitOfWork.Repository<Seller>().AddAsync(seller);
