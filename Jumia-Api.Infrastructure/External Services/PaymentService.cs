@@ -166,7 +166,7 @@ namespace Jumia_Api.Services.Implementation
                 apartment = "N/A",                                  // Add apartment if stored
                 city = address.City ?? "N/A",
                 state = address.State ?? address.City ?? "N/A",
-                country = address.Country ?? "EG",
+                country = "EGYPT",
                 postal_code = address.PostalCode ?? "00000"
             };
 
@@ -182,6 +182,12 @@ namespace Jumia_Api.Services.Implementation
             };
 
             var response = await _httpClient.PostAsJsonAsync("https://accept.paymob.com/api/acceptance/payment_keys", keyRequest);
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                // You can log the entire response here for debugging
+                throw new Exception($"Payment Key Generation Failed ({response.StatusCode}): {content}");
+            }
             var json = await response.Content.ReadFromJsonAsync<JsonDocument>();
             return json.RootElement.GetProperty("token").GetString();
         }

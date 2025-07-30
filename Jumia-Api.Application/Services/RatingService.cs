@@ -30,6 +30,7 @@ namespace Jumia_Api.Application.Services
             var orders = await _unitOfWork.OrderRepo.GetByCustomerIdAsync(dto.CustomerId);
 
             bool hasBought = orders
+                .Where(o => string.Equals(o.Status, "delivered", StringComparison.OrdinalIgnoreCase))
                 .SelectMany(o => o.SubOrders)
                 .SelectMany(sub => sub.OrderItems)
                 .Any(item => item.ProductId == dto.ProductId);
@@ -172,8 +173,8 @@ namespace Jumia_Api.Application.Services
         public async Task<bool> HasCustomerPurchasedProductAsync(int customerId, int productId)
         {
             var orders = await _unitOfWork.OrderRepo.GetByCustomerIdAsync(customerId);
-
             bool hasBought = orders
+                .Where(o => string.Equals(o.Status, "delivered", StringComparison.OrdinalIgnoreCase))
                 .SelectMany(o => o.SubOrders)
                 .SelectMany(sub => sub.OrderItems)
                 .Any(item => item.ProductId == productId);
