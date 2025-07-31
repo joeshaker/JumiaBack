@@ -4,6 +4,7 @@ using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jumia_Api.Infrastructure.Context.Migrations
 {
     [DbContext(typeof(JumiaDbContext))]
-    partial class JumiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250729164301_UpdateReviewColumn1")]
+    partial class UpdateReviewColumn1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -379,45 +382,6 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Jumia_Api.Domain.Models.CampaignJobRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("nvarchar(MAX)");
-
-                    b.Property<int>("JobType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PayloadJson")
-                        .HasColumnType("nvarchar(MAX)");
-
-                    b.Property<int>("SellerId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("StartedProcessingAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SellerId");
-
-                    b.ToTable("CampaignJobRequests");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Cart", b =>
@@ -860,12 +824,6 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
                     b.Property<int>("SellerId")
                         .HasColumnType("int");
 
@@ -998,12 +956,6 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
                     b.Property<string>("SKU")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -1052,9 +1004,7 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
 
                     b.Property<string>("IsVerified")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("pending");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsVerifiedPurchase")
                         .HasColumnType("bit");
@@ -1123,9 +1073,8 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IsVerified")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
 
                     b.Property<double>("Rating")
                         .HasColumnType("float");
@@ -1554,17 +1503,6 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                         .IsRequired();
 
                     b.Navigation("Affiliate");
-                });
-
-            modelBuilder.Entity("Jumia_Api.Domain.Models.CampaignJobRequest", b =>
-                {
-                    b.HasOne("Jumia_Api.Domain.Models.Seller", "Seller")
-                        .WithMany()
-                        .HasForeignKey("SellerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Seller");
                 });
 
             modelBuilder.Entity("Jumia_Api.Domain.Models.Cart", b =>
