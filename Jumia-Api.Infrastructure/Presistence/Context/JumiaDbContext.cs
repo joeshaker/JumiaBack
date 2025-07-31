@@ -66,7 +66,7 @@ namespace Jumia_Api.Infrastructure.Presistence.Context
 
         public virtual DbSet<WishlistItem> WishlistItems { get; set; }
 
-
+        public DbSet<CampaignJobRequest> CampaignJobRequests { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<SubOrder>()
