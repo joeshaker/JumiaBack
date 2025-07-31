@@ -43,6 +43,11 @@ namespace Jumia_Api.Application.Services
                 var productIds = products.Select(p => p.ProductId).ToList();
 
                 var subOrders = await _unitOfWork.SubOrderRepo.GetSubOrdersBySellerIdAsync(seller.SellerId);
+                var User = await _userService.GetUserByIdAsync(seller.UserId);
+                if(User == null)
+                {
+                    return null;
+                }
 
                 // Optional debug log
                 foreach (var so in subOrders)
@@ -70,7 +75,9 @@ namespace Jumia_Api.Application.Services
                     VerifiedAt = seller.VerifiedAt,
                     Rating = seller.Rating,
                     TotalProductsSold = totalProductsSold,
-                    TotalAmountSold = totalAmountSold
+                    TotalAmountSold = totalAmountSold,
+                    SellerName = $"{User.FirstName} {User.LastName}",
+                    Email = User.Email
                 });
             }
 
