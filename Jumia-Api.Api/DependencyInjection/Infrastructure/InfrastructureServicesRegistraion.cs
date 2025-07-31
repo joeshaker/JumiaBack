@@ -33,6 +33,8 @@ namespace Jumia_Api.Api.DependencyInjection.Infrastructure
             services.AddSingleton(new QdrantClient(host: "localhost", port: 6334, https: false));
             services.AddScoped<IConfirmationEmailService,ConfirmationEmailService>();
             services.AddScoped<IEmailService, SendGridEmailService>();
+            services.AddScoped<IRecommendationService, RecommendationService>();
+
 
 
             return services;
