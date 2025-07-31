@@ -75,6 +75,11 @@ namespace Jumia_Api.Infrastructure.Presistence.Context
                 .HasForeignKey(s => s.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Rating>()
+                    .Property(r => r.IsVerified)
+                    .HasDefaultValue("pending");
+
+
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.SubOrder)
                 .WithMany(s => s.OrderItems)

@@ -4,6 +4,7 @@ using Jumia_Api.Infrastructure.Presistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jumia_Api.Infrastructure.Context.Migrations
 {
     [DbContext(typeof(JumiaDbContext))]
-    partial class JumiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250729163555_NewReviewColumn")]
+    partial class NewReviewColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -999,11 +1002,8 @@ namespace Jumia_Api.Infrastructure.Context.Migrations
                     b.Property<int>("HelpfulCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("IsVerified")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("pending");
+                    b.Property<bool?>("IsVerified")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsVerifiedPurchase")
                         .HasColumnType("bit");
