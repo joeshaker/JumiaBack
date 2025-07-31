@@ -146,11 +146,29 @@ namespace Jumia_Api.Application.Services
                 return false; // Seller not found
             }
 
-            seller.IsVerified = !seller.IsVerified; // Assuming you want to mark the seller as verified
+            seller.IsVerified = "Authorized";
+
+            //seller.IsVerified = !seller.IsVerified; // Assuming you want to mark the seller as verified
             seller.VerifiedAt = DateTime.UtcNow; // Set the verification date
             await _unitOfWork.SaveChangesAsync();
             return true; // Verification successful
 
+        }
+
+        public async Task<bool> ToggleBlock(int sellerId)
+        {
+            var seller = await _unitOfWork.SellerRepo.GetByIdAsync(sellerId);
+            if (seller == null)
+            {
+                return false; // Seller not found
+            }
+
+            // Toggle the block status
+            string newStatus = seller.IsVerified == "Blocked" ? "Authorized" : "Blocked";
+
+            seller.IsVerified = newStatus; // Update the block status
+            await _unitOfWork.SaveChangesAsync();
+            return true; // Block status toggled successfully
         }
 
 
