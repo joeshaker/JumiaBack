@@ -15,6 +15,8 @@
 
         public int? UserTypeId { get; set; }
 
+        public bool isVerified { get; set; } 
+        public string SellerStatus { get; set; } = "pending"; 
         public string? User { get; set; }
 
     }

@@ -43,6 +43,11 @@ namespace Jumia_Api.Application.Services
                 var productIds = products.Select(p => p.ProductId).ToList();
 
                 var subOrders = await _unitOfWork.SubOrderRepo.GetSubOrdersBySellerIdAsync(seller.SellerId);
+                var User = await _userService.GetUserByIdAsync(seller.UserId);
+                if(User == null)
+                {
+                    return null;
+                }
 
                 // Optional debug log
                 foreach (var so in subOrders)
@@ -70,7 +75,9 @@ namespace Jumia_Api.Application.Services
                     VerifiedAt = seller.VerifiedAt,
                     Rating = seller.Rating,
                     TotalProductsSold = totalProductsSold,
-                    TotalAmountSold = totalAmountSold
+                    TotalAmountSold = totalAmountSold,
+                    SellerName = $"{User.FirstName} {User.LastName}",
+                    Email = User.Email
                 });
             }
 
@@ -139,11 +146,29 @@ namespace Jumia_Api.Application.Services
                 return false; // Seller not found
             }
 
-            seller.IsVerified = !seller.IsVerified; // Assuming you want to mark the seller as verified
+            seller.IsVerified = "Authorized";
+
+            //seller.IsVerified = !seller.IsVerified; // Assuming you want to mark the seller as verified
             seller.VerifiedAt = DateTime.UtcNow; // Set the verification date
             await _unitOfWork.SaveChangesAsync();
             return true; // Verification successful
 
+        }
+
+        public async Task<bool> ToggleBlock(int sellerId)
+        {
+            var seller = await _unitOfWork.SellerRepo.GetByIdAsync(sellerId);
+            if (seller == null)
+            {
+                return false; // Seller not found
+            }
+
+            // Toggle the block status
+            string newStatus = seller.IsVerified == "Blocked" ? "Authorized" : "Blocked";
+
+            seller.IsVerified = newStatus; // Update the block status
+            await _unitOfWork.SaveChangesAsync();
+            return true; // Block status toggled successfully
         }
 
 
@@ -213,20 +238,18 @@ namespace Jumia_Api.Application.Services
                 return new AuthResult
                 {
                     Successed = false,
-                    Message = "Invalid business logo file. Allowed formats: jpg, png, gif, etc. Max size: 10MB."
+                    Message = "Invalid image file. Allowed formats: jpg, png, gif, etc. Max size: 10MB."
                 };
             }
 
-            var businessLogoUrl = await _fileService.SaveFileAsync(dto.BusinessLogo, "seller/business-logos");
-
-
+            var bussinessLogoUrl = await _fileService.SaveFileAsync(dto.BusinessLogo, "sellers/logos");
             var seller = new Seller
             {
                 UserId = user.Id,
                 BusinessName = dto.BusinessName, // You may add BusinessName to the DTO
                 ImageUrl = imageUrl,
                 BusinessDescription=dto.BusinessDescription,
-                BusinessLogo=businessLogoUrl
+                BusinessLogo=bussinessLogoUrl
             };
 
             await _unitOfWork.Repository<Seller>().AddAsync(seller);
@@ -242,7 +265,8 @@ namespace Jumia_Api.Application.Services
                 UserId = user.Id,
                 Email = user.Email,
                 UserName = $"{user.FirstName} {user.LastName}",
-                UserRole = "Seller"
+                UserRole = "Seller",
+                UserTypeId = seller.SellerId
             };
         }
 

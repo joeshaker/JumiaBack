@@ -61,17 +61,23 @@ namespace Jumia_Api.Application.Services
 
             var role = await _userService.GetUserRoleAsync(user);
             int userTypeId=0;
+            bool isVerified = false;
+            string sellerStatus = "pending"; 
             if (role == "Customer")
             {
                  var customer =await _unitOfWork.CustomerRepo.GetCustomerByUserIdAsync(user.Id);
               
                 userTypeId = customer.CustomerId;
+                isVerified = user.EmailConfirmed;
             } 
                 
             if(role == "Seller")
             {
                 var seller = await _unitOfWork.SellerRepo.GetSellerByUserID(user.Id);
                 userTypeId = seller.SellerId;
+                isVerified = user.EmailConfirmed;
+                sellerStatus = seller.IsVerified;
+
             }
             var token = await _jwtService.GenerateJwtTokenAsync(user, role, userTypeId);
              return new AuthResult
@@ -83,10 +89,14 @@ namespace Jumia_Api.Application.Services
                 Email = user.Email,
                 UserName = user.FirstName + " " + user.LastName,
                 UserRole = role,
-                UserTypeId=userTypeId
-               
-                
-            };
+                UserTypeId=userTypeId,
+                 isVerified = isVerified,
+                 SellerStatus = sellerStatus
+
+
+
+
+             };
 
 
         }
@@ -129,6 +139,7 @@ namespace Jumia_Api.Application.Services
             _otpService.RemoveOtp(dto.Email);
             // Assign default role to the user
             var user = await _userService.FindByEmailAsync(dto.Email);
+            user.EmailConfirmed = true;
             if (user == null)
             {
 
@@ -139,6 +150,7 @@ namespace Jumia_Api.Application.Services
                 };
 
             }
+           
            
             await _userService.AddUserToRoleAsync(user, "Customer");
 
@@ -166,7 +178,8 @@ namespace Jumia_Api.Application.Services
                 UserId = user.Id,
                 Email = user.Email,
                 UserName = user.FirstName + " " + user.LastName,
-                UserRole = "Customer"
+                UserRole = "Customer",
+                UserTypeId = customer.CustomerId
 
             };
 

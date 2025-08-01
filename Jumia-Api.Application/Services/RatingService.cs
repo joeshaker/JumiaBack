@@ -30,6 +30,7 @@ namespace Jumia_Api.Application.Services
             var orders = await _unitOfWork.OrderRepo.GetByCustomerIdAsync(dto.CustomerId);
 
             bool hasBought = orders
+                .Where(o => string.Equals(o.Status, "delivered", StringComparison.OrdinalIgnoreCase))
                 .SelectMany(o => o.SubOrders)
                 .SelectMany(sub => sub.OrderItems)
                 .Any(item => item.ProductId == dto.ProductId);
@@ -64,10 +65,12 @@ namespace Jumia_Api.Application.Services
         public async Task<IEnumerable<RatingInfoDto>> GetAllRatings()
         {
             var ratings = await _unitOfWork.RatingRepo.GetAllAsync();
+            var verifiedRatings = ratings.Where(r =>
+    string.Equals(r.IsVerified, "verified", StringComparison.OrdinalIgnoreCase));
             var ratingDtos = new List<RatingInfoDto>();
 
 
-            foreach (var rating in ratings)
+            foreach (var rating in verifiedRatings)
             {
                 string customerName = "Unknown";
                 var productname = await _unitOfWork.ProductRepo.GetByIdAsync(rating.ProductId);
@@ -91,11 +94,83 @@ namespace Jumia_Api.Application.Services
                     Comment = rating.Comment,
                     CreatedAt = rating.CreatedAt,
                     IsVerifiedPurchase = rating.IsVerifiedPurchase,
+                    IsAccepted=rating.IsVerified,
                     HelpfulCount = rating.HelpfulCount
                 });
             }
 
             return ratingDtos;
+        }
+
+
+        public async Task<bool> AcceptRating(int ratingId)
+        {
+            var rating = await _unitOfWork.RatingRepo.GetByIdAsync(ratingId);
+            if (rating == null)
+                throw new KeyNotFoundException("Rating not found.");
+
+            rating.IsVerified = "verified";
+            _unitOfWork.RatingRepo.Update(rating);
+            await _unitOfWork.SaveChangesAsync();
+
+            // ✅ Update Seller's Rating
+            var product = await _unitOfWork.ProductRepo.GetByIdAsync(rating.ProductId);
+            if (product == null)
+                throw new KeyNotFoundException("Product not found.");
+
+            var sellerId = product.SellerId;
+            var seller = await _unitOfWork.SellerRepo.GetByIdAsync(sellerId);
+            if (seller == null)
+                throw new KeyNotFoundException("Seller not found.");
+
+            // Get all verified ratings for this seller's products
+            var allRatings = await _unitOfWork.RatingRepo.GetAllAsync();
+            var sellerProductIds = (await _unitOfWork.ProductRepo.GetAvailableProductsBySellerId(sellerId))
+                .Select(p => p.ProductId)
+                .ToList();
+
+            var verifiedSellerRatings = allRatings
+                .Where(r => sellerProductIds.Contains(r.ProductId) &&
+                            string.Equals(r.IsVerified, "verified", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (verifiedSellerRatings.Any())
+            {
+                double average = Math.Round(verifiedSellerRatings.Average(r => r.Stars), 2);
+
+                seller.Rating = Math.Round(average, 2);
+            }
+            else
+            {
+                seller.Rating = 0; // or keep old rating
+            }
+
+            try
+            {
+                _unitOfWork.SellerRepo.Update(seller);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to update seller rating: {ex.Message}", ex);
+            }
+
+
+            return true;
+        }
+
+
+
+
+        public async Task<bool> RejectRating(int ratingid)
+        {
+            var rating = await _unitOfWork.RatingRepo.GetByIdAsync(ratingid);
+            if (rating == null)
+                throw new KeyNotFoundException("Rating not found.");
+            rating.IsVerified = "rejected";
+            _unitOfWork.RatingRepo.Update(rating);
+            await _unitOfWork.SaveChangesAsync();
+            return true;
         }
 
 
@@ -135,9 +210,11 @@ namespace Jumia_Api.Application.Services
         {
             var ratings = await _unitOfWork.RatingRepo.GetAllAsync();
             var filteredRatings = ratings.Where(r => r.ProductId == productId);
+            var verifiedRatings = filteredRatings
+                .Where(r => string.Equals(r.IsVerified, "verified", StringComparison.OrdinalIgnoreCase));
             var ratingDtos = new List<RatingInfoDto>();
 
-            foreach (var rating in filteredRatings)
+            foreach (var rating in verifiedRatings)
             {
                 string customerName = "Unknown";
                 var productname = await _unitOfWork.ProductRepo.GetByIdAsync(rating.ProductId);
@@ -172,8 +249,8 @@ namespace Jumia_Api.Application.Services
         public async Task<bool> HasCustomerPurchasedProductAsync(int customerId, int productId)
         {
             var orders = await _unitOfWork.OrderRepo.GetByCustomerIdAsync(customerId);
-
             bool hasBought = orders
+                .Where(o => string.Equals(o.Status, "delivered", StringComparison.OrdinalIgnoreCase))
                 .SelectMany(o => o.SubOrders)
                 .SelectMany(sub => sub.OrderItems)
                 .Any(item => item.ProductId == productId);
@@ -194,6 +271,45 @@ namespace Jumia_Api.Application.Services
 
             _unitOfWork.RatingRepo.Update(rating);
             await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<RatingInfoDto>> GetAllRatingForAdmin()
+        {
+
+            var ratings = await _unitOfWork.RatingRepo.GetAllAsync();
+            var ratingDtos = new List<RatingInfoDto>();
+
+
+            foreach (var rating in ratings)
+            {
+                string customerName = "Unknown";
+                var productname = await _unitOfWork.ProductRepo.GetByIdAsync(rating.ProductId);
+                var customer = await _unitOfWork.CustomerRepo.GetByIdAsync(rating.CustomerId);
+                if (customer != null)
+                {
+                    var user = await _userManager.FindByIdAsync(customer.UserId);
+                    if (user != null)
+                    {
+                        customerName = $"{user.FirstName} {user.LastName}";
+                    }
+                }
+
+                ratingDtos.Add(new RatingInfoDto
+                {
+                    RatingId = rating.RatingId,
+                    CustomerId = rating.CustomerId,
+                    CustomerName = customerName,
+                    ProductName = productname.Name,
+                    Stars = rating.Stars,
+                    Comment = rating.Comment,
+                    CreatedAt = rating.CreatedAt,
+                    IsVerifiedPurchase = rating.IsVerifiedPurchase,
+                    IsAccepted= rating.IsVerified,
+                    HelpfulCount = rating.HelpfulCount
+                });
+            }
+
+            return ratingDtos;
         }
     }
 }

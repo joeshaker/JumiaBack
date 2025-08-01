@@ -59,9 +59,8 @@ namespace Jumia_Api.Application.Services
         {
             var user = new AppUser
             {
-                UserName = email,
                 Email = email,
-                // Default values for testing
+                UserName = firstName + Guid.NewGuid().ToString(),
                 FirstName = firstName,
                 LastName = lastName,
                 DateOfBirth = birthDate,
