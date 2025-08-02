@@ -41,7 +41,7 @@ namespace Jumia_Api.Api.DependencyInjection.Infrastructure
             services.AddHostedService<CampaignEmailWorker>();
             services.AddScoped<IRecommendationService, RecommendationService>();
 
-
+            services.AddHttpClient("AIClient");
 
             return services;
 
