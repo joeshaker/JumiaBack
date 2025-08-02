@@ -14,6 +14,8 @@ using QuestPDF.Infrastructure;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Net.Http; // For OllamaApiClient constructor
+using StackExchange.Redis; // <--- ADD THIS USING
 
 namespace Jumia_Api.Application.Services
 {
@@ -21,32 +23,32 @@ namespace Jumia_Api.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly OllamaApiClient _ollamaClient;
-        private readonly IEmailService _emailSender; // Your email sending service
+        private readonly IEmailService _emailSender;
         private readonly ILogger<CampaignEmailService> _logger;
         private readonly JumiaDbContext _appContext;
+        private readonly IDatabase _redisDb; // <--- ADD THIS FIELD for Redis interaction
 
         public CampaignEmailService(
-
             IConfiguration configuration,
             IEmailService emailSender,
             ILogger<CampaignEmailService> logger,
             IUnitOfWork unitOfWork,
-            JumiaDbContext appContext)
+            JumiaDbContext appContext,
+            IConnectionMultiplexer redisConnection) // <--- INJECT IConnectionMultiplexer
         {
-
-            _ollamaClient = new OllamaApiClient("http://localhost:11434");
+            _ollamaClient = new OllamaApiClient("http://localhost:11434"); // Consider injecting OllamaApiClient if possible
             _emailSender = emailSender;
             _logger = logger;
             _unitOfWork = unitOfWork;
             _appContext = appContext;
+            _redisDb = redisConnection.GetDatabase(); // <--- GET REDIS DATABASE INSTANCE
             // QuestPDF.Settings.License = LicenseType.Community; // Uncomment if using Community License
         }
 
-        // --- Methods for Requesting Jobs (Called by API or Scheduler) ---
+        // --- Methods for Requesting Jobs (No Changes Here) ---
 
         public async Task<string> RequestEmailCampaignAsync(int sellerId)
         {
-            // Initial check for seller's total sales volume
             var ItemsSoldBySeller = await _unitOfWork.OrderItemRepo.GetBySellerId(sellerId);
             var totalItemsSoldBySeller = ItemsSoldBySeller.Sum(oi => oi.Quantity);
 
@@ -60,11 +62,11 @@ namespace Jumia_Api.Application.Services
                 JobType = JobType.EmailCampaign,
                 SellerId = sellerId,
                 Status = JobStatus.Pending,
-                PayloadJson = JsonSerializer.Serialize(new { SellerId = sellerId }) // Store any specific data needed
+                PayloadJson = JsonSerializer.Serialize(new { SellerId = sellerId })
             };
 
-             await _unitOfWork.CampaignJobRequestRepo.AddAsync(jobRequest);
-             await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CampaignJobRequestRepo.AddAsync(jobRequest);
+            await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation($"Email campaign request queued for seller {sellerId}. Job ID: {jobRequest.Id}");
             return $"Email campaign request submitted successfully. You will be notified when it's live. Job ID: {jobRequest.Id}";
@@ -87,15 +89,19 @@ namespace Jumia_Api.Application.Services
             return $"Monthly report request submitted successfully. Job ID: {jobRequest.Id}";
         }
 
-        // --- Method for Processing Jobs (Called by Background Worker) ---
+        // --- Method for Processing Jobs (Updated with Redis Leasing) ---
 
         public async Task ProcessPendingJobsAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Checking for pending campaign jobs...");
+            _logger.LogInformation("Checking for pending campaign jobs with Redis leasing...");
 
-            // Select a single pending job to process to avoid overwhelming the system
-            // Use a transaction and locking for concurrent workers if needed in high-volume scenarios
-            var job = await _unitOfWork.CampaignJobRequestRepo.GetFirstPendingJobToExecute(stoppingToken);
+            // Select a single pending job. Redis will handle concurrent access.
+            var job = await _appContext.CampaignJobRequests // Use DbContext directly for simpler query
+                .Include(j => j.Seller) // Include Seller for easy access later
+                .ThenInclude(s=>s.User)
+                .Where(j => j.Status == JobStatus.Pending)
+                .OrderBy(j => j.CreatedAt) // Process oldest first
+                .FirstOrDefaultAsync(stoppingToken);
 
             if (job == null)
             {
@@ -103,14 +109,30 @@ namespace Jumia_Api.Application.Services
                 return;
             }
 
-            _logger.LogInformation($"Processing Job ID: {job.Id}, Type: {job.JobType}, Seller: {job.SellerId}");
+            // --- Implement Redis Job Lease ---
+            var jobLeaseKey = $"report:job:{job.Id}";
+            // Set a lease duration (e.g., 10 minutes) - this should be longer than your max expected job processing time.
+            var leaseExpiry = TimeSpan.FromMinutes(10);
 
-            job.Status = JobStatus.Processing;
-            job.StartedProcessingAt = DateTime.UtcNow;
-            await _unitOfWork.SaveChangesAsync(stoppingToken); // Update status immediately
+            // Try to acquire a lease using SET NX (SET if Not eXists).
+            // If the key is successfully set, this worker has the lease.
+            bool acquiredLease = await _redisDb.StringSetAsync(jobLeaseKey, "processing", leaseExpiry, When.NotExists);
+
+            if (!acquiredLease)
+            {
+                _logger.LogInformation($"Job {job.Id} is already being processed by another worker or lease still exists. Skipping.");
+                return; // Another worker got the lease, or the previous worker crashed and the key hasn't expired yet.
+            }
+
+            _logger.LogInformation($"Acquired Redis lease for job {job.Id}. Processing...");
 
             try
             {
+                // Update job status in SQL DB immediately after acquiring lease
+                job.Status = JobStatus.Processing;
+                job.StartedProcessingAt = DateTime.UtcNow;
+                await _unitOfWork.SaveChangesAsync(stoppingToken); // Use SaveChangesAsync from UnitOfWork
+
                 switch (job.JobType)
                 {
                     case JobType.EmailCampaign:
@@ -128,6 +150,14 @@ namespace Jumia_Api.Application.Services
 
                 job.Status = JobStatus.Completed;
                 job.CompletedAt = DateTime.UtcNow;
+                _logger.LogInformation($"Job {job.Id} completed successfully.");
+            }
+            catch (OperationCanceledException)
+            {
+                job.Status = JobStatus.Cancelled;
+                job.ErrorMessage = "Operation cancelled.";
+                _logger.LogWarning($"Job {job.Id} was cancelled.");
+                throw; // Re-throw to propagate cancellation up to the worker
             }
             catch (Exception ex)
             {
@@ -138,67 +168,97 @@ namespace Jumia_Api.Application.Services
             finally
             {
                 await _unitOfWork.SaveChangesAsync(stoppingToken); // Save final status
+
+                // Release the Redis lease if the job completed successfully or was cancelled.
+                // If the job failed, we *let the key expire naturally* so that the ReportKeyHandler
+                // can detect the failure/abandonment and perform its cleanup/logging.
+                if (job.Status == JobStatus.Completed || job.Status == JobStatus.Cancelled)
+                {
+                    await _redisDb.KeyDeleteAsync(jobLeaseKey);
+                    _logger.LogInformation($"Released Redis lease for job {job.Id}.");
+                }
+                else
+                {
+                    _logger.LogWarning($"Job {job.Id} finished with status '{job.Status}'. Leaving Redis key '{jobLeaseKey}' to expire naturally for potential cleanup.");
+                }
             }
         }
+
+        // --- Your Existing Private Processing Methods (No Changes, only added cancellation token checks) ---
 
         private async Task ProcessEmailCampaignJobAsync(CampaignJobRequest job, CancellationToken stoppingToken)
         {
             var sellerId = job.SellerId;
-            var seller = job.Seller; // Already loaded via Include
+            var seller = job.Seller;
 
-            // 1. Identify Top 3 Selling Products for THIS Seller
             var topProductsForSeller = await _appContext.OrderItems
-                                                      .Where(oi => oi.SubOrder.SellerId == sellerId)
-                                                      .GroupBy(oi => oi.ProductId)
-                                                      .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(oi => oi.Quantity) })
-                                                      .OrderByDescending(x => x.TotalQuantity)
-                                                      .Take(3)
-                                                      .Join(_appContext.Products,
-                                                            oi => oi.ProductId,
-                                                            p => p.ProductId,
-                                                            (oi, p) => p)
-                                                      .ToListAsync(stoppingToken);
+                                    .Where(oi => oi.SubOrder.SellerId == sellerId)
+                                    .GroupBy(oi => oi.ProductId)
+                                    .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(oi => oi.Quantity) })
+                                    .OrderByDescending(x => x.TotalQuantity)
+                                    .Take(3)
+                                    .Join(_appContext.Products,
+                                            oi => oi.ProductId,
+                                            p => p.ProductId,
+                                            (oi, p) => p)
+                                    .ToListAsync(stoppingToken);
 
             if (!topProductsForSeller.Any())
             {
                 throw new InvalidOperationException($"No top products found for seller (ID: {sellerId}) to generate campaign.");
             }
 
-            // 2. Generate Email Content (HTML) for each top product using Ollama
             var emailHtmlContent = new StringBuilder();
             emailHtmlContent.AppendLine($"<h1>Discover Hot Products from {seller.BusinessName}!</h1>");
             emailHtmlContent.AppendLine("<p>We've noticed you love great deals, and our top seller, " + seller.BusinessName + ", has some amazing products that are flying off the digital shelves!</p>");
 
-             // Or your preferred Ollama model
-
             foreach (var product in topProductsForSeller)
             {
                 stoppingToken.ThrowIfCancellationRequested(); // Check for cancellation
+                var fullImageUrl = @"http://localhost:5087" + product.MainImageUrl;
                 var prompt = $"""
-        Generate an engaging marketing email snippet in HTML for the following product.
-        The snippet should be a self-contained HTML `<div>` or `<section>`.
-        Focus on highlighting key benefits, encouraging a purchase, and making it visually appealing within an email.
-        Use inline CSS for styling.
+        Your task is to generate **EXACTLY ONE HTML SNIPPET** for an email marketing campaign.
+        This snippet must be a **self-contained HTML <div> or <section> element**.
 
+        **STRICT RULES:**
+        1.  **ONLY generate the HTML code.** Do NOT include any other text, explanations, conversational filler, or Markdown code blocks (e.g., ```html, ```css, ```).
+        2.  Do NOT include any internal thoughts, planning, or commentary.
+        3.  The HTML must be valid and ready to be inserted directly into an email body.
+        4.  Use inline CSS for styling within the HTML tags where possible, as external CSS is not supported by all email clients.
+
+        **Product Details to Use:**
         Product Name: {product.Name}
         Product Description: {product.Description}
         Product Price: {product.BasePrice:C}
         Product URL: http://localhost:4200/Products/{product.ProductId}
-        Product Image URL: http://localhost:5087{product.MainImageUrl}
+        Product Image URL: {fullImageUrl}
 
-        Ensure the snippet includes:
-        - Product Name (h3)
-        - Product Image (img tag with provided URL, responsive style)
-        - Engaging description (p tag)
-        - Price (strong or larger font)
-        - A clear "Shop Now" button (a tag with inline styling) linking to Product URL.
+        **Ensure the HTML snippet includes:**
+        -   Product Name (within an `<h3>` tag).
+        -   Product Image (an `<img>` tag with `src="{fullImageUrl}"` and appropriate responsive styling like `max-width: 100%; height: auto;`).
+        -   An engaging description (within a `<p>` tag).
+        -   Price (formatted strongly or with larger font, e.g., `<p><strong>Price: {product.BasePrice:C}</strong></p>`).
+        -   A clear "Shop Now" button (an `<a>` tag with inline styling for button appearance, linking to `Product URL`).
+
+
+        EXAMPLE START OF DESIRED OUTPUT:
+        <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
+            <h3>...</h3>
+            <img src="..." alt="..." style="max-width: 100%; height: auto;">
+            <p>...</p>
+            <p><strong>...</strong></p>
+            <a href="..." style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Shop Now</a>
+        </div>
+        END EXAMPLE.
+
+        Your response should start directly with the opening `<div>` or `<section>` tag of the product snippet.
         """;
 
                 var messages = new List<Message>
-        {
-            new Message(ChatRole.System, "You are a highly skilled e-commerce marketing assistant. Your task is to generate compelling, clean HTML email snippets for products."),
-            new Message(ChatRole.User, prompt)
-        };
+                {
+                    new Message(ChatRole.System, "You are a highly skilled e-commerce marketing assistant. Your task is to generate compelling, clean HTML email snippets for products."),
+                    new Message(ChatRole.User, prompt)
+                };
 
                 var chatRequest = new ChatRequest()
                 {
@@ -209,7 +269,7 @@ namespace Jumia_Api.Application.Services
 
                 var streamedResponse = _ollamaClient.ChatAsync(chatRequest, stoppingToken);
 
-                var productHtmlSnippet = new StringBuilder(); // StringBuilder for this specific product's snippet
+                var productHtmlSnippet = new StringBuilder();
                 await foreach (var streamPart in streamedResponse.WithCancellation(stoppingToken))
                 {
                     if (streamPart?.Message?.Content != null)
@@ -220,10 +280,9 @@ namespace Jumia_Api.Application.Services
                 var result = productHtmlSnippet.ToString().Trim();
                 result = CleanOllamaResponse(result);
 
-                // Now, append the *completed* snippet for this product to the main email content
                 if (result.Length > 0)
                 {
-                    emailHtmlContent.AppendLine(result.ToString());
+                    emailHtmlContent.AppendLine(result); // Append result directly
                 }
                 else
                 {
@@ -256,12 +315,10 @@ namespace Jumia_Api.Application.Services
 </html>
 """;
 
-
-            // ... rest of the method (customer targeting and email sending) remains the same ...
             var targetedCustomerEmails = await _appContext.Customers
-                                                       .Select(c => c.User.Email)
-                                                       .Take(500) // Limit for testing, adjust as needed
-                                                       .ToListAsync(stoppingToken);
+                                        .Select(c => c.User.Email)
+                                        .Take(500)
+                                        .ToListAsync(stoppingToken);
 
             if (!targetedCustomerEmails.Any())
             {
@@ -280,9 +337,8 @@ namespace Jumia_Api.Application.Services
         private async Task ProcessMonthlyReportJobAsync(CampaignJobRequest job, CancellationToken stoppingToken)
         {
             var sellerId = job.SellerId;
-            var seller = job.Seller; // Already loaded via Include
+            var seller = job.Seller;
 
-            // Parse month/year from payload
             var payload = JsonSerializer.Deserialize<MonthlyReportPayload>(job.PayloadJson ?? "{}");
             var month = payload?.Month ?? DateTime.UtcNow.AddMonths(-1).Month;
             var year = payload?.Year ?? DateTime.UtcNow.AddMonths(-1).Year;
@@ -290,16 +346,15 @@ namespace Jumia_Api.Application.Services
             var reportMonthStart = new DateTime(year, month, 1);
             var reportMonthEnd = reportMonthStart.AddMonths(1).AddDays(-1);
 
-            // 1. Gather Data for the Seller for the Report Month
             var sellerOrderItems = await _appContext.OrderItems
-                                                 .Include(oi => oi.SubOrder)
-                                                 .Include(oi => oi.Product)
-                                                 .Where(oi => oi.SubOrder.SellerId == seller.SellerId &&
-                                                              oi.SubOrder.Order.CreatedAt >= reportMonthStart &&
-                                                              oi.SubOrder.Order.CreatedAt <= reportMonthEnd)
-                                                 .ToListAsync(stoppingToken);
+                                        .Include(oi => oi.SubOrder)
+                                        .Include(oi => oi.Product)
+                                        .Where(oi => oi.SubOrder.SellerId == seller.SellerId &&
+                                                        oi.SubOrder.Order.CreatedAt >= reportMonthStart &&
+                                                        oi.SubOrder.Order.CreatedAt <= reportMonthEnd)
+                                        .ToListAsync(stoppingToken);
 
-            var totalRevenue = sellerOrderItems.Sum(oi =>  oi.TotalPrice);
+            var totalRevenue = sellerOrderItems.Sum(oi => oi.TotalPrice);
             var totalItemsSold = sellerOrderItems.Sum(oi => oi.Quantity);
 
             var topProducts = sellerOrderItems
@@ -321,27 +376,25 @@ namespace Jumia_Api.Application.Services
             }
 
             var prompt = $"""
-    Analyze the following monthly sales and performance data for an e-commerce seller.
-    Generate a concise executive summary, key highlights, and actionable recommendations to help the seller grow their business.
-    The output should be clear, professional, and formatted with distinct headings.
+        Analyze the following monthly sales and performance data for an e-commerce seller.
+        Generate a concise executive summary, key highlights, and actionable recommendations to help the seller grow their business.
+        The output should be clear, professional, and formatted with distinct headings.
 
-    Seller Data for the last month:
-    {dataSummary.ToString()}
+        Seller Data for the last month:
+        {dataSummary.ToString()}
 
-    Structure your response with the following sections:
-    ### Executive Summary
-    ### Key Performance Highlights
-    ### Top Products Spotlight
-    ### Recommendations for Growth
-    """;
-
-            
+        Structure your response with the following sections:
+        ### Executive Summary
+        ### Key Performance Highlights
+        ### Top Products Spotlight
+        ### Recommendations for Growth
+        """;
 
             var messages = new List<Message>
-    {
-        new Message(ChatRole.System, "You are an expert e-commerce business analyst. Provide insights and actionable advice based on seller performance data."),
-        new Message(ChatRole.User, prompt)
-    };
+            {
+                new Message(ChatRole.System, "You are an expert e-commerce business analyst. Provide insights and actionable advice based on seller performance data."),
+                new Message(ChatRole.User, prompt)
+            };
 
             var chatRequest = new ChatRequest()
             {
@@ -352,7 +405,7 @@ namespace Jumia_Api.Application.Services
 
             var streamedResponse = _ollamaClient.ChatAsync(chatRequest, stoppingToken);
 
-            var analysisTextBuilder = new StringBuilder(); // StringBuilder for the full analysis text
+            var analysisTextBuilder = new StringBuilder();
             await foreach (var streamPart in streamedResponse.WithCancellation(stoppingToken))
             {
                 if (streamPart?.Message?.Content != null)
@@ -361,11 +414,10 @@ namespace Jumia_Api.Application.Services
                 }
             }
 
-            var analysisText = analysisTextBuilder.ToString(); // Get the complete analysis text
+            var analysisText = analysisTextBuilder.ToString();
             analysisText = CleanOllamaResponse(analysisText);
             QuestPDF.Settings.License = LicenseType.Community;
 
-            // ... rest of the method (PDF generation and email sending) remains the same ...
             byte[] pdfBytes;
             pdfBytes = Document.Create(container =>
             {
@@ -389,7 +441,7 @@ namespace Jumia_Api.Application.Services
                         .Column(column =>
                         {
                             column.Spacing(15);
-                            column.Item().Text(analysisText) // Use the aggregated analysisText
+                            column.Item().Text(analysisText)
                                 .FontSize(11)
                                 .LineHeight(1.5f);
 
@@ -445,13 +497,13 @@ namespace Jumia_Api.Application.Services
             _logger.LogInformation($"Successfully processed monthly report job {job.Id} for seller {sellerId}.");
         }
 
-        // Helper class for deserializing monthly report payload
         private class MonthlyReportPayload
         {
             public int SellerId { get; set; }
             public int Month { get; set; }
             public int Year { get; set; }
         }
+
         private string CleanOllamaResponse(string rawText)
         {
             if (string.IsNullOrWhiteSpace(rawText))
@@ -462,10 +514,24 @@ namespace Jumia_Api.Application.Services
 
             cleanedText = Regex.Replace(cleanedText, "<think>(.*?)</think>", string.Empty, RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
+            var htmlMatch = Regex.Match(cleanedText, "```html(.*?)```", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (htmlMatch.Success && htmlMatch.Groups.Count > 1)
+            {
+                return htmlMatch.Groups[1].Value.Trim();
+            }
 
-            // If the report always starts with "### Executive Summary",
-            // you could specifically look for that and remove anything before it,
-            // but be careful not to remove valid content.
+            var fallbackMatch = Regex.Match(cleanedText, @"<(div|section)>(.*?)</\1>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (fallbackMatch.Success && fallbackMatch.Groups.Count > 1)
+            {
+                return fallbackMatch.Value.Trim();
+            }
+            // For the monthly report, if it's markdown, we remove fences only, not the content
+            var markdownMatch = Regex.Match(cleanedText, "```markdown(.*?)```", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (markdownMatch.Success && markdownMatch.Groups.Count > 1)
+            {
+                return markdownMatch.Groups[1].Value.Trim();
+            }
+
             var executiveSummaryIndex = cleanedText.IndexOf("### Executive Summary", StringComparison.OrdinalIgnoreCase);
             if (executiveSummaryIndex > 0)
             {
