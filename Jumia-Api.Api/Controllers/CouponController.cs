@@ -42,7 +42,7 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpPost("CreateCoupon")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponDto dto)
         {
             var result = await _couponService.CreateCouponAsync(dto);
@@ -54,8 +54,10 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpPut("UpdateCoupon/{couponId}")]
-        [Authorize]
-        public async Task<IActionResult> UpdateCoupon(int couponId, [FromBody] CreateCouponDto dto)
+        [Produces("application/json")]
+
+        //[Authorize]
+        public async Task<IActionResult> UpdateCoupon(int couponId, CreateCouponDto dto)
         {
             var result = await _couponService.UpdateCouponAsync(couponId, dto);
             if (!result)
@@ -66,7 +68,9 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpDelete("DeleteCoupon/{couponId}")]
-        [Authorize]
+        [Produces("application/json")]
+
+        //[Authorize]
         public async Task<IActionResult> DeleteCoupon(int couponId)
         {
             var result = await _couponService.DeleteCouponAsync(couponId);
@@ -89,7 +93,7 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpPost("AssignCoupon")]
-        [Authorize(Roles ="Admin")]
+        //[Authorize(Roles ="Admin")]
         public async Task<IActionResult> AssignCouponToUser([FromBody] UserCouponActionDto dto)
         {
             var result = await _userCouponService.AssignCouponToUserAsync(dto.UserId, dto.CouponId);
@@ -101,7 +105,7 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpPost("MarkCouponAsUsed")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> MarkCouponAsUsed([FromBody] UserCouponActionDto dto)
         {
             var result = await _userCouponService.MarkCouponAsUsedAsync(dto.UserId, dto.CouponId);
@@ -113,7 +117,7 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpGet("UserCoupons/{userId}")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> GetUserCoupons(int userId)
         {
             var userCoupons = await _userCouponService.GetUserCouponsAsync(userId);
@@ -125,7 +129,7 @@ namespace Jumia_Api.Api.Controllers
         }
 
         [HttpDelete("DeleteUserCoupon/{userCouponId}")]
-        [Authorize(Roles ="Admin")]
+        //[Authorize(Roles ="Admin")]
         public async Task<IActionResult> DeleteUserCoupon(int userCouponId)
         {
             var result = await _userCouponService.DeleteUserCouponAsync(userCouponId);
