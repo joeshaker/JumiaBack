@@ -82,9 +82,9 @@ namespace Jumia_Api.Api.Controllers
             }
             return Ok("Coupon deleted successfully.");
         }
-
+        [Produces("application/json")]
         [HttpPost("ApplyCoupon/{code}")]
-        public async Task<IActionResult> ApplyCoupon([FromBody] ApplyCouponDto dto)
+        public async Task<IActionResult> ApplyCoupon( ApplyCouponDto dto)
         {
             var result = await _couponService.ApplyCouponAsync(dto.Code, dto.CartTotal);
             if (!result)
